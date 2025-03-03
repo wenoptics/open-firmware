@@ -1,0 +1,53 @@
+#pragma once
+
+//#define SI_DEBUG_BUILD //Enable for debug build
+//#define SI_ECHO_GCODE      //If enabled echoes written line on MQTT debug
+//#define SI_CALIBRATION_DEBUG //If enabled doesn't add the G92 command to stream (So calibration has no effect)
+
+//Wifi config server port
+const uint16_t SI_WIFICONFIG_PORT = 8888;
+
+const uint32_t SAMD_SERIAL_TIMEOUT_MS = 1000;     //Maximum time to wait when reading from SAMD
+const unsigned long SAMD_SERIAL_BAUDRATE = 115200; //Baudrate of the samd serial
+const uint8_t SI_SM_SENT_LINE_BUFFER_LEN = 10;    //Number of sent line to save to fast resend
+const uint8_t SI_SM_EXTRA_LINE_BUFFER_LEN = 5;      //Maximum number of extra line (Command not in stream)
+
+const uint32_t SI_BUTTON_RESET_TIME_MS = 2000; //Time the button needs to be pressed to reset config
+
+const char SI_AP_SSID[] = "ScribIt-%.2x%.2x%.2x"; //SSID wi-fi
+const char SI_AP_PASSWORD[] = "Scribit2019";     //Password wi-fi
+
+const uint32_t SI_DOWNLOAD_TIMEOUT = 1000; //Milliseconds to wait new data on download
+const uint32_t BOOT_MESSAGE_RESEND_TIMEOUT_MS = 3000; //Milliseconds to wait for status befor resending boot message
+const uint32_t GCODE_TEST_BUTTON_PRESS_WINDOWS_MS = 2000; //Maximum time between the tree button click to start GCODE test
+
+//TEST ScribIt
+#define SI_TEST_GCODE_STRING "M17\nM92 X30.5 Y-30.5 Z-22.2222\nG92 X0 Y0\nG1 X78 Y78 F1000\nM400\nG4 P50\nG1 X0 Y0 F1000\nM400\nG92 X0 Y0\nG77\nM18"
+
+
+//Mqtt----------------------------------------------------------------------
+const char SI_MQTT_USER[] = "";                          //MQTT user
+const char SI_MQTT_PASS[] = "";                 //MQTT password
+const unsigned long SI_MQTT_PORT = 8883;                        //MQTT port
+const char SI_MQTT_LOCALNAME_FORMAT[] = "ScribIt-%.2x%.2x%.2x"; //MQTT localname pattern
+
+const uint32_t SI_MQTT_SEND_STATUS_TIMEOUT_MS = 5000; //Milliseconds between automatic status send
+const uint16_t SI_MQTT_MAX_PAYLOAD_LEN = 512;           //Maximum payload length set to 512KB
+//MQTT Debug/production variables
+
+const char SIMQTT_TOPIC_FORMAT_IN[] = "tin/%.2x%.2x%.2x%.2x%.2x%.2x/%s";
+const char SIMQTT_TOPIC_FORMAT_OUT[] = "tout/%.2x%.2x%.2x%.2x%.2x%.2x/%s";
+const char SI_MQTT_HOST[] = "";
+
+//Calibration parameters------------------------------------------------------------------------------------
+const uint8_t SI_CALIBRATION_POINT_NUMBER=4; //Number of calibration inertial measures
+const char SI_CALIBRATION_URL[]=""; //Url to send calibration results http://xxxxx/yyyy
+const char SI_CALIBRATION_GCODE_URL[]="https://xxxxxxx/autocal.GCODE"; //Url containing the calibration gcode
+const uint32_t SI_CALIBRATION_API_TIMEOUT = 30 * 1000;
+
+//Internal constant (Avoid editing if not sure)-------------------------------------------------------------
+const char SI_TEMPORARY_GCODE_PATH[] = "/temp.gcode";
+const uint16_t JSON_MAX_LEN = 255;
+//#define SI_DEBUG_ESP   //Writes debug line on ESP serial (If you didn't write this code you migh wanna let it disabled)
+
+const uint32_t SI_SAMD_SYNC_TIMEOUT = 10000;
