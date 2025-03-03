@@ -1,5 +1,5 @@
 
-## Guida
+## HowTo
 
 ### Compile the Firmware
 - Copy the file `ExtraFile/SIConfig.hpp.example` to `Firmware/ScribitESP/SIConfig.hpp`
