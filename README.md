@@ -1,4 +1,17 @@
 
+
+## Original firmware behavior
+
+If you are starting fresh in 2025, especially after shutdown of the product - here are some good to know things.
+
+- The left part of the strip LED light is a button. It maybe pressed to reset the device
+- The default wifi password for original firmware is `ScribItAP314`. Source: [web-archive: How to connect your Scribit to the WiFi network](https://web.archive.org/web/20240530214903/https://support.scribit.design/hc/en-us/articles/360038467812-How-to-connect-your-Scribit-to-the-WiFi-network)
+- After connection to AP, `http://192.168.240.1:8888/` should be available.
+
+- LED light status: [docs/support-scribit-design/led-status.md]()
+
+--- (Original README.md) ---
+
 ## HowTo
 
 ### Compile the Firmware
