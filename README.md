@@ -11,9 +11,6 @@ If you are starting fresh in 2025, especially after shutdown of the product - he
 - LED light status: [docs/support-scribit-design/led-status.md]()
 - More support doc archive in [docs/support-scribit-design]()
 
----
-
---- (Original README.md) ---
 
 ## HowTo
 
@@ -24,13 +21,25 @@ If you are starting fresh in 2025, especially after shutdown of the product - he
 - Make the necessary configurations and compile
 
 ### SDK Installation
-Follow the instruction on the document [MBC-W](docs/MBC-WB-UserManual_v-2-1-min-1.pdf) page 38 (Arduino platform manual installation)
-To compile correctly, the following steps are required (All files are located in the `Extrafile` folder):
-- Copy the files `8MB_ffat.csv` and `8MB_spiffs.csv` to `Arduino/hardware/METECA/mbc-wb/tools/partitions`
-- Copy the `arduino-mqtt` folder to `Arduino/libraries`
-- Copy the `StepperDriver` folder to `Arduino/libraries`
-- Copy the `SERCOM.cpp` file to `Arduino/hardware/METECA/mbc-wb/cores/samd21`
 
+- Install the Arduino Legacy IDE (1.8.19).
+    - Add board URLs to Arduino IDE in `File > Preferences > Additional Boards Manager URLs`:
+        ```
+        https://www.briki.org/download/resources/package_briki_index.json
+        https://dl.espressif.com/dl/package_esp32_dev_index.json
+        ```
+    - Go to `Tools > Board > Board Manager` and install the `Briki MBC-WB` board definition.
+    - Use the **v2.0.0** version of the `Briki MBC-WB` board (v2.1.7 doesn't compile SAMD board)
+
+- Add additional hardware overrides:
+    - Copy the files `8MB_ffat.csv` and `8MB_spiffs.csv` from `ExtraFile/` to `Arduino15/packages/briki/hardware/mbc-wb/2.0.0/tools/partitions`, overwriting the existing files.
+    - Copy `ExtraFile/SERCOM.cpp` to `Arduino15/packages/briki/hardware/mbc-wb/2.0.0/cores/samd21`, overwriting the existing file.
+
+- Copy libraries:
+    - Copy `ExtraFile/arduino-mqtt` folder to `Firmware/ScribitESP`
+    - Copy `ExtraFile/StepperDriver` folder to `Firmware/ScribitESP`
+
+You may also refer to the [MBC-WB User Manual](docs/MBC-WB-UserManual_v-2-1-min-1.pdf) for more details.
 
 #### New Wi-Fi Configuration
 - Connect to the `ScribIt-AP` AP.
@@ -58,3 +67,8 @@ To reset the Wi-Fi configuration, press the button for at least 2 seconds. The d
   - Follow the procedure for flashing the partition table, ensuring that this firmware for the ESP does not coexist with the one for the SAMD partition table.
 - After downloading, the robot does not move, and the debug shows many serial errors:
   - Follow **SDK Installation** and verify that the `SERCOM.cpp` file has been correctly overwritten.
+
+## Acknowledgments
+
+- [@kris-sum](https://github.com/kris-sum)
+- [scribit-open/open-firmware](https://github.com/scribit-open/open-firmware)

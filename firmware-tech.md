@@ -12,5 +12,5 @@
 - Firmware/MK4duo/ seems like a copy of the Marlin firmware. Maybe it's good to diff it with the Marlin firmware to see what's different.
   - Make sure to identify the presumable Marlin fork version first
   
-
+- Currently, following the instructions, the ESP32 firmware (ScribitESP) is able to compile. However, the SAMD21 firmware (MK4duo) is not able to compile.
   
