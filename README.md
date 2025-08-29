@@ -15,6 +15,16 @@ If you are starting fresh in 2025, especially after shutdown of the product - he
 ## HowTo
 
 ### Compile the Firmware
+
+#### Using Docker
+
+Refer to [docker/README.md](docker/README.md) for more details.
+
+#### Using Arduino IDE
+
+<details>
+<summary>Click to expand</summary>
+
 - Copy the file `ExtraFile/SIConfig.hpp.example` to `Firmware/ScribitESP/SIConfig.hpp`
 - Copy the file `ExtraFile/Mk4duoVersion.h.example` to `Firmware/MK4Duo/Mk4duoVersion.h`
 - Copy the file `ExtraFile/ScribitVersion.hpp.example` to `Firmware/ScribitESP/ScribitVersion.hpp`
@@ -41,7 +51,9 @@ If you are starting fresh in 2025, especially after shutdown of the product - he
 
 You may also refer to the [MBC-WB User Manual](docs/MBC-WB-UserManual_v-2-1-min-1.pdf) for more details.
 
-#### New Wi-Fi Configuration
+</details>
+
+### New Wi-Fi Configuration
 - Connect to the `ScribIt-AP` AP.
 - Send a POST request to `http://192.168.240.1:8888`. The body must contain a JSON formatted as follows: `{ "ssid": "networkSSID", "password": "networkPsk" }`.
 - The device blinks faster and responds:
@@ -49,10 +61,10 @@ You may also refer to the [MBC-WB User Manual](docs/MBC-WB-UserManual_v-2-1-min-
   - **400**: Error in the request. The body contains details about the error in the format: `{"error":"error", "ID":"id_device"}`.
 - If the connection is successful, the device turns the LEDs green and reboots; otherwise, it turns them red for 2 seconds and waits for a new configuration packet.
 
-#### Delete Saved Wi-Fi
+### Delete Saved Wi-Fi
 To reset the Wi-Fi configuration, press the button for at least 2 seconds. The device will reboot.
 
-#### OTA Firmware
+### OTA Firmware
 - Compile the firmware.
 - Connect to the AP and open the OTA tool.
 - Connect to `192.168.240.1` on port `3232` without a password.
