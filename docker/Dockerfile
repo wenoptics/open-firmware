@@ -32,8 +32,7 @@ WORKDIR /workspace
 
 # Copy scripts and make them executable
 COPY docker/setup-arduino.sh /usr/local/bin/setup-arduino
-COPY docker/verify-setup.sh /usr/local/bin/verify-setup
-RUN chmod +x /usr/local/bin/setup-arduino /usr/local/bin/verify-setup
+RUN chmod +x /usr/local/bin/setup-arduino
 
 # Run Arduino CLI setup
 RUN setup-arduino

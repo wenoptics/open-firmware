@@ -32,7 +32,7 @@ docker-compose -f docker/docker-compose.yml run --rm scribit-firmware arduino-cl
 
 **Using Direct Docker Commands:**
 ```bash
-# Build the image
+# Build the image first
 docker build -f docker/Dockerfile -t scribit-firmware-builder .
 
 # ESP32 firmware
@@ -67,7 +67,7 @@ docker-compose -f docker/docker-compose.yml run --rm scribit-firmware arduino-cl
 ```bash
 # Navigate to project root, then:
 
-# Build the image manually (if not using ./docker/compile)
+# Build the image manually
 docker build -f docker/Dockerfile -t scribit-firmware-builder .
 
 # Compile ESP32 firmware
@@ -75,9 +75,6 @@ docker run --rm -v $(pwd):/workspace/source:ro -v $(pwd)/docker/builds:/workspac
 
 # Compile SAMD firmware  
 docker run --rm -v $(pwd):/workspace/source:ro -v $(pwd)/docker/builds:/workspace/builds scribit-firmware-builder arduino-cli compile --fqbn briki:mbc-wb:mbc:mcu=samd --output-dir /workspace/builds /workspace/source/Firmware/MK4duo/MK4duo.ino
-
-# Verify setup
-docker run --rm -v $(pwd):/workspace/source:ro scribit-firmware-builder verify-setup
 
 # Interactive shell for debugging
 docker run --rm -it -v $(pwd):/workspace/source:ro scribit-firmware-builder bash
@@ -90,18 +87,6 @@ Compiled firmware files are saved to `./docker/builds/` directory:
 - **ESP32 Firmware:** `.bin`, `.hex`, `.elf` files
 - **SAMD Firmware:** `.bin`, `.hex`, `.elf` files
 
-### Accessing Build Files
-
-```bash
-# Files are directly accessible in the host filesystem
-ls -la ./docker/builds/
-
-# Example output files:
-# ScribitESP.ino.bin      - ESP32 binary for flashing
-# ScribitESP.ino.hex      - ESP32 hex file
-# MK4duo.ino.bin          - SAMD binary for flashing  
-# MK4duo.ino.hex          - SAMD hex file
-```
 
 ## Board Configuration
 
@@ -115,15 +100,6 @@ The environment is pre-configured with:
 
 ## Troubleshooting
 
-### Verify Setup
-```bash
-# Using Docker Compose
-docker-compose -f docker/docker-compose.yml run --rm scribit-firmware verify-setup
-
-# Using Docker directly
-docker run --rm -v $(pwd):/workspace/source:ro scribit-firmware-builder verify-setup
-```
-
 ### Check Available Boards
 ```bash
 # Using the Docker image directly  
@@ -136,13 +112,6 @@ docker run --rm scribit-firmware-builder arduino-cli board listall | grep briki
 docker run --rm -it -v $(pwd):/workspace/source:ro scribit-firmware-builder bash
 ```
 
-## Architecture
-
-- **Base Image:** Ubuntu 22.04 (lightweight, headless)
-- **Arduino CLI:** Version 0.35.3 for compilation
-- **Board Packages:** Briki MBC-WB v2.0.0
-- **Size:** ~400MB (optimized for CI/CD)
-
 ## Prerequisites
 
 - Docker installed and running
@@ -153,27 +122,3 @@ docker run --rm -it -v $(pwd):/workspace/source:ro scribit-firmware-builder bash
   - `ExtraFile/ScribitVersion.hpp.example`
   - `ExtraFile/arduino-mqtt/` directory
   - `ExtraFile/StepperDriver/` directory
-
-## Summary
-
-✅ **Compilation Tested Successfully:**
-- ESP32 firmware: `ScribitESP.ino` → `ScribitESP.ino.bin` (1.05MB)
-- SAMD firmware: `MK4duo.ino` → `MK4duo.ino.bin` (101KB)
-
-✅ **Both compilation methods work:**
-- Docker Compose (recommended)
-- Direct Docker commands
-
-✅ **Output files:**
-- `.bin` files for flashing
-- `.hex` files for programming
-- `.elf` files for debugging
-
-## Files
-
-- `Dockerfile` - Main Docker image definition
-- `docker-compose.yml` - Docker Compose configuration  
-- `verify-setup.sh` - Environment verification script
-- `setup-arduino.sh` - Arduino CLI setup script
-- `builds/` - Output directory for compiled firmware
-- `.dockerignore` - Files excluded from Docker context
