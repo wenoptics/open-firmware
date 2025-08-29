@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  scribit-firmware-dev:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: scribit-firmware-dev
+    ports:
+      - "6080:80"    # VNC web interface
+      - "5900:5900"  # VNC direct access (optional)
+    volumes:
+      - ../:/workspace/open-firmware:rw
+      - firmware-builds:/tmp/builds
+    environment:
+      - RESOLUTION=1920x1080
+      # - VNC_PASSWORD=scribit123
+    restart: unless-stopped
+    privileged: true  # May be needed for USB device access
+
+volumes:
+  firmware-builds:
+    driver: local

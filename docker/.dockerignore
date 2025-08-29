@@ -1,0 +1,41 @@
+# Docker ignore file for Scribit Firmware build
+
+# Git files
+.git
+.gitignore
+.gitmodules
+
+# Docker files (avoid recursive copying)
+docker/test-build.sh
+docker/build.sh
+
+# Documentation that's not needed in container
+README.md
+firmware-tech.md
+docs/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts (if any)
+*.o
+*.a
+*.so
+build/
+dist/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Logs
+*.log
