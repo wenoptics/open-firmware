@@ -1,6 +1,6 @@
 # Scribit Firmware Compilation Environment
 
-A lightweight, headless Docker environment for compiling Scribit firmware using Arduino CLI.
+A lightweight, headless Docker image for compiling Scribit firmware using Arduino CLI.
 
 ## Quick Start
 
@@ -19,7 +19,7 @@ A lightweight, headless Docker environment for compiling Scribit firmware using 
 
 ### Compile Firmware
 
-**Using Docker Compose (recommended):**
+**Using Docker Compose:**
 ```bash
 # From project root directory:
 
@@ -30,7 +30,7 @@ docker-compose -f docker/docker-compose.yml run --rm scribit-firmware arduino-cl
 docker-compose -f docker/docker-compose.yml run --rm scribit-firmware arduino-cli compile --fqbn briki:mbc-wb:mbc:mcu=samd --output-dir /workspace/builds /workspace/source/Firmware/MK4duo/MK4duo.ino
 ```
 
-**Using Direct Docker Commands:**
+**Using Direct Docker Commands (alternative):**
 ```bash
 # Build the image first
 docker build -f docker/Dockerfile -t scribit-firmware-builder .

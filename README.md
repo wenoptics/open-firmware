@@ -14,9 +14,24 @@ If you are starting fresh in 2025, especially after shutdown of the product - he
 
 ## HowTo
 
+### Prepare
+
+Prepare configuration files (one-time setup):
+
+```bash
+# Copy example configuration files
+cp ExtraFile/SIConfig.hpp.example Firmware/ScribitESP/SIConfig.hpp
+cp ExtraFile/Mk4duoVersion.h.example Firmware/MK4duo/Mk4duoVersion.h  
+cp ExtraFile/ScribitVersion.hpp.example Firmware/ScribitESP/ScribitVersion.hpp
+
+# Copy required libraries
+cp -r ExtraFile/arduino-mqtt Firmware/ScribitESP/
+cp -r ExtraFile/StepperDriver Firmware/ScribitESP/
+```
+
 ### Compile the Firmware
 
-#### Using Docker
+#### Using Docker (recommended)
 
 Refer to [docker/README.md](docker/README.md) for more details.
 
@@ -30,7 +45,7 @@ Refer to [docker/README.md](docker/README.md) for more details.
 - Copy the file `ExtraFile/ScribitVersion.hpp.example` to `Firmware/ScribitESP/ScribitVersion.hpp`
 - Make the necessary configurations and compile
 
-### SDK Installation
+**SDK Installation**
 
 - Install the Arduino Legacy IDE (1.8.19).
     - Add board URLs to Arduino IDE in `File > Preferences > Additional Boards Manager URLs`:

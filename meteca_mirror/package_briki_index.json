@@ -1,0 +1,784 @@
+{
+  "packages": [
+    {
+      "name": "briki",
+      "maintainer": "Meteca",
+      "websiteURL": "http://meteca.org",
+      "email": "support@meteca.org",
+      "help": {
+        "online": "http://meteca.org"
+      },
+      "platforms": [
+        {
+          "name": "Briki MBC-WB Boards",
+          "architecture": "mbc-wb",
+          "version": "1.0.0",
+          "category": "briki",
+          "url": "https://download.meteca.org/platforms/mbc-wb_1.0.0.zip",
+          "archiveFileName": "mbc-wb_1.0.0.zip",
+          "checksum": "SHA-256:CF86C373DAF7A0B58AF3E59B540E42741709F6422B223EC9AA053A20389026E0",
+          "size": "32627627",
+          "help": {
+            "online": "http://meteca.org"
+          },
+          "boards": [
+            {
+              "name": "Briki MBC-WB"
+            },
+            {
+              "name": "Briki ABC (MBC-WB)"
+            }
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "7-2017q4"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS",
+              "version": "4.5.0"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS-Atmel",
+              "version": "1.2.0"
+            },
+            {
+              "packager": "esp32",
+              "version": "1.22.0-80-g6c4433a-5.2.0",
+              "name": "xtensa-esp32-elf-gcc"
+            },
+            {
+              "packager": "esp32",
+              "version": "0.2.3",
+              "name": "mkspiffs"
+            },
+            {
+              "packager": "briki",
+              "version": "0.0.1",
+              "name": "fatfsimage"
+            },
+            {
+              "packager": "briki",
+              "version": "1.1.0.1",
+              "name": "brikiota"
+            },
+            {
+              "packager": "briki",
+              "version": "1.0.0",
+              "name": "mbctool"
+            }
+          ]
+        },
+        {},
+        {},
+        {},
+        {
+          "name": "Briki MBC-WB Boards",
+          "architecture": "mbc-wb",
+          "version": "2.1.2",
+          "category": "briki",
+          "url": "https://download.meteca.org/platforms/mbc-wb_2.1.2.zip",
+          "archiveFileName": "mbc-wb_2.1.2.zip",
+          "checksum": "SHA-256:AAD2A94CDE9705426C42F8BF6C2C5A63A6A77C6684CBD16C411A17E42D0396E0",
+          "size": "39521085",
+          "help": {
+            "online": "http://meteca.org"
+          },
+          "boards": [
+            {
+              "name": "Briki MBC-WB"
+            },
+            {
+              "name": "Briki ABC (MBC-WB)"
+            }
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "7-2017q4"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS",
+              "version": "4.5.0"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS-Atmel",
+              "version": "1.2.0"
+            },
+            {
+              "packager": "esp32",
+              "version": "1.22.0-80-g6c4433a-5.2.0",
+              "name": "xtensa-esp32-elf-gcc"
+            },
+            {
+              "packager": "esp32",
+              "version": "0.2.3",
+              "name": "mkspiffs"
+            },
+            {
+              "packager": "briki",
+              "version": "0.0.1",
+              "name": "fatfsimage"
+            },
+            {
+              "packager": "briki",
+              "version": "1.1.0.1",
+              "name": "brikiota"
+            },
+            {
+              "packager": "briki",
+              "version": "2.0.1",
+              "name": "mbctool"
+            }
+          ]
+        },
+        {},
+        {
+          "name": "Briki MBC-WB Boards",
+          "architecture": "mbc-wb",
+          "version": "2.1.4",
+          "category": "briki",
+          "url": "https://download.meteca.org/platforms/mbc-wb_2.1.4.zip",
+          "archiveFileName": "mbc-wb_2.1.4.zip",
+          "checksum": "SHA-256:9996E2CE7CBCC1DB91E0F9923757BDE4982FFB1611FEBFEC2485B70BE83197CB",
+          "size": "38574930",
+          "help": {
+            "online": "http://meteca.org"
+          },
+          "boards": [
+            {
+              "name": "Briki MBC-WB"
+            },
+            {
+              "name": "Briki ABC (MBC-WB)"
+            }
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "7-2017q4"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS",
+              "version": "4.5.0"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS-Atmel",
+              "version": "1.2.0"
+            },
+            {
+              "packager": "esp32",
+              "version": "1.22.0-80-g6c4433a-5.2.0",
+              "name": "xtensa-esp32-elf-gcc"
+            },
+            {
+              "packager": "esp32",
+              "version": "0.2.3",
+              "name": "mkspiffs"
+            },
+            {
+              "packager": "briki",
+              "version": "0.0.1",
+              "name": "fatfsimage"
+            },
+            {
+              "packager": "briki",
+              "version": "1.1.0.1",
+              "name": "brikiota"
+            },
+            {
+              "packager": "briki",
+              "version": "2.1.0",
+              "name": "mbctool"
+            }
+          ]
+        },
+        {
+          "name": "Briki MBC-WB Boards",
+          "architecture": "mbc-wb",
+          "version": "2.1.5",
+          "category": "briki",
+          "url": "https://download.meteca.org/platforms/mbc-wb_2.1.5.zip",
+          "archiveFileName": "mbc-wb_2.1.5.zip",
+          "checksum": "SHA-256:F16F740014DD645F916151AA030E28F805649D05D0EC7A39032A6FEA4F18F306",
+          "size": "52509000",
+          "help": {
+            "online": "http://meteca.org"
+          },
+          "boards": [
+            {
+              "name": "Briki MBC-WB"
+            },
+            {
+              "name": "Briki ABC (MBC-WB)"
+            },
+            {
+              "name": "Briki Nano (MBC-WB)"
+            }
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "7-2017q4"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS",
+              "version": "4.5.0"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS-Atmel",
+              "version": "1.2.0"
+            },
+            {
+              "packager": "esp32",
+              "version": "1.22.0-80-g6c4433a-5.2.0",
+              "name": "xtensa-esp32-elf-gcc"
+            },
+            {
+              "packager": "esp32",
+              "version": "0.2.3",
+              "name": "mkspiffs"
+            },
+            {
+              "packager": "briki",
+              "version": "0.0.1",
+              "name": "fatfsimage"
+            },
+            {
+              "packager": "briki",
+              "version": "1.1.0.1",
+              "name": "brikiota"
+            },
+            {
+              "packager": "briki",
+              "version": "2.1.1",
+              "name": "mbctool"
+            }
+          ]
+        },
+        {
+          "name": "Briki MBC-WB Boards",
+          "architecture": "mbc-wb",
+          "version": "2.1.6",
+          "category": "briki",
+          "url": "https://download.meteca.org/platforms/mbc-wb_2.1.6.zip",
+          "archiveFileName": "mbc-wb_2.1.6.zip",
+          "checksum": "SHA-256:9F299F03997C4276C23B1FD7461FBA9CF45D8E6DE3049C1C54FF7A0EC89302A3",
+          "size": "52529564",
+          "help": {
+            "online": "http://meteca.org"
+          },
+          "boards": [
+            {
+              "name": "Briki MBC-WB"
+            },
+            {
+              "name": "Briki ABC (MBC-WB)"
+            },
+            {
+              "name": "Briki Nano (MBC-WB)"
+            }
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "7-2017q4"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS",
+              "version": "4.5.0"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS-Atmel",
+              "version": "1.2.0"
+            },
+            {
+              "packager": "esp32",
+              "version": "1.22.0-80-g6c4433a-5.2.0",
+              "name": "xtensa-esp32-elf-gcc"
+            },
+            {
+              "packager": "esp32",
+              "version": "0.2.3",
+              "name": "mkspiffs"
+            },
+            {
+              "packager": "briki",
+              "version": "0.0.1",
+              "name": "fatfsimage"
+            },
+            {
+              "packager": "briki",
+              "version": "1.1.0.1",
+              "name": "brikiota"
+            },
+            {
+              "packager": "briki",
+              "version": "2.1.1",
+              "name": "mbctool"
+            }
+          ]
+        },
+        {
+          "name": "Briki MBC-WB Boards",
+          "architecture": "mbc-wb",
+          "version": "2.1.7",
+          "category": "briki",
+          "url": "https://download.meteca.org/platforms/mbc-wb_2.1.7.zip",
+          "archiveFileName": "mbc-wb_2.1.7.zip",
+          "checksum": "SHA-256:453E9D4DDC6947D4C861986ADAA92AA784BF9B1FEC24E590D23254EA4A77B766",
+          "size": "79721039",
+          "help": {
+            "online": "http://meteca.org"
+          },
+          "boards": [
+            {
+              "name": "Briki MBC-WB"
+            },
+            {
+              "name": "Briki ABC (MBC-WB)"
+            },
+            {
+              "name": "Briki Nano (MBC-WB)"
+            }
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "7-2017q4"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS",
+              "version": "4.5.0"
+            },
+            {
+              "packager": "arduino",
+              "name": "CMSIS-Atmel",
+              "version": "1.2.0"
+            },
+            {
+              "packager": "esp32",
+              "name": "xtensa-esp32-elf-gcc",
+              "version": "gcc8_4_0-esp-2021r2-patch3"
+            },
+            {
+              "packager": "esp32",
+              "version": "0.2.3",
+              "name": "mkspiffs"
+            },
+            {
+              "packager": "briki",
+              "version": "0.0.1",
+              "name": "fatfsimage"
+            },
+            {
+              "packager": "briki",
+              "version": "1.1.0.2",
+              "name": "brikiota"
+            },
+            {
+              "packager": "briki",
+              "version": "2.1.2",
+              "name": "mbctool"
+            }
+          ]
+        },
+        {},
+        {}
+      ],
+      "tools": [
+        {
+          "version": "0.0.1",
+          "name": "fatfsimage",
+          "systems": [
+            {
+              "url": "https://download.meteca.org/tools/fatfsimage_0.0.1_win32.zip",
+              "checksum": "SHA-256:A09742FD9051ED5FFEDA1186D4C7BDCB4CEC7025D67DAC3EF22729C9C66364FF",
+              "host": "i686-mingw32",
+              "archiveFileName": "fatfsimage_0.0.1_win32.zip",
+              "size": "5004186"
+            },
+            {
+              "url": "https://download.meteca.org/tools/fatfsimage_0.0.1_linux64.tar.gz",
+              "checksum": "SHA-256:25D2FDF5A5C4AA7C3D5FD1D0A78BDCB2580F80B56C672A190B77BEC87B891943",
+              "host": "x86_64-pc-linux-gnu",
+              "archiveFileName": "fatfsimage_0.0.1_linux64.tar.gz",
+              "size": "96245"
+            },
+            {
+              "url": "https://download.meteca.org/tools/fatfsimage_0.0.1_linux32.tar.gz",
+              "checksum": "SHA-256:3D2B75FD4F197C83163F9D68979A4FB10D3779DA3E459B2139EAD4BB3B8D5275",
+              "host": "i686-pc-linux-gnu",
+              "archiveFileName": "fatfsimage_0.0.1_linux32.tar.gz",
+              "size": "77452"
+            },
+            {
+              "url": "https://download.meteca.org/tools/fatfsimage_0.0.1_osx.tar.gz",
+              "checksum": "SHA-256:D6696F5F1BE9782C32A5890F6D99BC12B7EC47B102EF3F0C2B6ABE8C391EE66C",
+              "host": "x86_64-apple-darwin",
+              "archiveFileName": "fatfsimage_0.0.1_osx.tar.gz",
+              "size": "55969"
+            }
+          ]
+        },
+        {
+          "version": "1.1.0.1",
+          "name": "brikiota",
+          "systems": [
+            {
+              "url": "https://download.meteca.org/tools/brikiota_1.1.0.1_win32.zip",
+              "checksum": "SHA-256:D1FBB138B2AC60F0B797F60CCA6187B948E99500B5ECEA69D7C35D8F0555B9D1",
+              "host": "i686-mingw32",
+              "archiveFileName": "brikiota_1.1.0.1_win32.zip",
+              "size": "11846240"
+            },
+            {
+              "url": "https://download.meteca.org/tools/brikiota_1.1.0.1_linux64.tar.gz",
+              "checksum": "SHA-256:4E39E2304741FE4BFEA3AA70A52943C6F721DA4A00F2504E269997DA61C637C4",
+              "host": "x86_64-pc-linux-gnu",
+              "archiveFileName": "brikiota_1.1.0.1_linux64.tar.gz",
+              "size": "22047437"
+            },
+            {
+              "url": "https://download.meteca.org/tools/brikiota_1.1.0.1_linux32.tar.gz",
+              "checksum": "SHA-256:61026AE9A241D5D8C73B833D32C72EFD8AC0E5FB4A951B4A49F69FA77414D3E2",
+              "host": "i686-pc-linux-gnu",
+              "archiveFileName": "brikiota_1.1.0.1_linux32.tar.gz",
+              "size": "22897365"
+            },
+            {
+              "url": "https://download.meteca.org/tools/brikiota_1.1.0.1_osx.tar.gz",
+              "checksum": "SHA-256:664C5AB4FA8F323BD981330F297A84BEC31A5C9577EC33239D701FE4E1640542",
+              "host": "x86_64-apple-darwin",
+              "archiveFileName": "brikiota_1.1.0.1_osx.tar.gz",
+              "size": "19250357"
+            }
+          ]
+        },
+        {
+          "version": "1.1.0.2",
+          "name": "brikiota",
+          "systems": [
+            {
+              "url": "https://download.meteca.org/tools/brikiota_1.1.0.2_win32.zip",
+              "checksum": "SHA-256:4A9D90B07EFD104E0F1FCA55D186825B4714A3F8059F0A72C02CD8ACFA52D98C",
+              "host": "i686-mingw32",
+              "archiveFileName": "brikiota_1.1.0.2_win32.zip",
+              "size": "30132064"
+            },
+            {
+              "url": "https://download.meteca.org/tools/brikiota_1.1.0.2_linux64.tar.gz",
+              "checksum": "SHA-256:6CA7DC6F8C5D68C328799F7C616BE4C2870778EDD45B256FE68859F6321CBDF4",
+              "host": "x86_64-pc-linux-gnu",
+              "archiveFileName": "brikiota_1.1.0.2_linux64.tar.gz",
+              "size": "49015957"
+            },
+            {
+              "url": "https://download.meteca.org/tools/brikiota_1.1.0.2_linux32.tar.gz",
+              "checksum": "SHA-256:EAD4D54F226228EAD7A5E0E6AB380EBD5014E95CEA6FB10CF67D5F418ACAA854",
+              "host": "i686-pc-linux-gnu",
+              "archiveFileName": "brikiota_1.1.0.2_linux32.tar.gz",
+              "size": "30233598"
+            },
+            {
+              "url": "https://download.meteca.org/tools/brikiota_1.1.0.2_osx.tar.gz",
+              "checksum": "SHA-256:C97186BF1D003B5E32F00FE29F217C0EBABA6B8B6E05CE61F2EEB53FACA0BE2D",
+              "host": "x86_64-apple-darwin",
+              "archiveFileName": "brikiota_1.1.0.2_osx.tar.gz",
+              "size": "23427608"
+            }
+          ]
+        },
+        {
+          "version": "1.0.0",
+          "name": "mbctool",
+          "systems": [
+            {
+              "url": "https://download.meteca.org/tools/mbctool_1.0.0_win32.zip",
+              "checksum": "SHA-256:EA7DAA6A60E01AB1532D85E8614FFD161840E484549B24E18059165A0D189906",
+              "host": "i686-mingw32",
+              "archiveFileName": "mbctool_1.0.0_win32.zip",
+              "size": "10220723"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_1.0.0_linux64.tar.gz",
+              "checksum": "SHA-256:C5239AFD30CAD26C51CA364E1644FA464FC36D4D3D888A67D3335D0521855634",
+              "host": "x86_64-pc-linux-gnu",
+              "archiveFileName": "mbctool_1.0.0_linux64.tar.gz",
+              "size": "11428072"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_1.0.0_linux32.tar.gz",
+              "checksum": "SHA-256:6DDA4530860736D2B19B1A53AB0E023DD71C8817C4105F44CBCB04D73484ED45",
+              "host": "i686-pc-linux-gnu",
+              "archiveFileName": "mbctool_1.0.0_linux32.tar.gz",
+              "size": "9521449"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_1.0.0_osx.tar.gz",
+              "checksum": "SHA-256:4DC45510CB4AA3D247B5742E72F164E01890661A4DE02C8CCF35C00DC9FBE02B",
+              "host": "x86_64-apple-darwin",
+              "archiveFileName": "mbctool_1.0.0_osx.tar.gz",
+              "size": "16161330"
+            }
+          ]
+        },
+        {
+          "version": "2.0.0",
+          "name": "mbctool",
+          "systems": [
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.0.0_win32.zip",
+              "checksum": "SHA-256:856A2BB90E8F2DD39BEFC593D29FEC4143AA65A1B38A77FE2912F91B52D1241C",
+              "host": "i686-mingw32",
+              "archiveFileName": "mbctool_2.0.0_win32.zip",
+              "size": "13633898"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.0.0_linux64.tar.gz",
+              "checksum": "SHA-256:F79501023005F7C9F080AE5A50386F50B7A92A4BE616592BCE9CF29EF6E7197B",
+              "host": "x86_64-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.0.0_linux64.tar.gz",
+              "size": "15897667"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.0.0_linux32.tar.gz",
+              "checksum": "SHA-256:158EBA248E534DF3BEC22B76C5AFE6C95AACEEA3661695A5CF44FE1E1B8BB7CB",
+              "host": "i686-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.0.0_linux32.tar.gz",
+              "size": "13711494"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.0.0_osx.tar.gz",
+              "checksum": "SHA-256:B20169AB86790C9EC2C8CD61E5C48664AA7F957226F664936798B5A2A9DB4D76",
+              "host": "x86_64-apple-darwin",
+              "archiveFileName": "mbctool_2.0.0_osx.tar.gz",
+              "size": "22933247"
+            }
+          ]
+        },
+        {
+          "version": "2.0.1",
+          "name": "mbctool",
+          "systems": [
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.0.1_win32.zip",
+              "checksum": "SHA-256:6DE2D14EB972C09166A0233F8428F1AC2CFE3BBEFBDE27F5F1B64636B10BCFE2",
+              "host": "i686-mingw32",
+              "archiveFileName": "mbctool_2.0.1_win32.zip",
+              "size": "16508944"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.0.1_linux64.tar.gz",
+              "checksum": "SHA-256:4A24AB94913D7CA30D7D01EB1625267A52EFDFEE6C6232E389FC203C8D305AF3",
+              "host": "x86_64-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.0.1_linux64.tar.gz",
+              "size": "18902239"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.0.1_linux32.tar.gz",
+              "checksum": "SHA-256:2C8C5D8D52CA32AD3EE4F0926A7F5F64A2ABB6E51F62CC8ADEA9CDE53BD601D2",
+              "host": "i686-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.0.1_linux32.tar.gz",
+              "size": "16269467"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.0.1_osx.tar.gz",
+              "checksum": "SHA-256:79B8588A55F9A6AEA20C81B27042810F00C1DD8A2A8177F36D815A2A9DB86738",
+              "host": "x86_64-apple-darwin",
+              "archiveFileName": "mbctool_2.0.1_osx.tar.gz",
+              "size": "19037242"
+            }
+          ]
+        },
+        {
+          "version": "2.1.0",
+          "name": "mbctool",
+          "systems": [
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.0_win32.zip",
+              "checksum": "SHA-256:BF0BAC38C922601D886D9E751CEC2D6C3DA0EA600D4C10FE2837D39EF3888C0F",
+              "host": "i686-mingw32",
+              "archiveFileName": "mbctool_2.1.0_win32.zip",
+              "size": "12816254"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.0_linux64.tar.gz",
+              "checksum": "SHA-256:F287C0989B578A293A0C2BD5989A2B938604A99F48106EB0076EA8CEAAF7F306",
+              "host": "x86_64-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.1.0_linux64.tar.gz",
+              "size": "18872080"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.0_linux32.tar.gz",
+              "checksum": "SHA-256:CD2BCC1B532DDD3B41429D429E34D0B44F52E1EC16E347270FB59A68F96620B5",
+              "host": "i686-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.1.0_linux32.tar.gz",
+              "size": "15923547"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.0_osx.tar.gz",
+              "checksum": "SHA-256:F1331DBAE495952C8FCDADC5B5A19227A3B43B1B2DCB0EA81DCDDD851FC40D1C",
+              "host": "x86_64-apple-darwin",
+              "archiveFileName": "mbctool_2.1.0_osx.tar.gz",
+              "size": "17454523"
+            }
+          ]
+        },
+        {
+          "version": "2.1.1",
+          "name": "mbctool",
+          "systems": [
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.1_win32.zip",
+              "checksum": "SHA-256:FD32DDDC9D7B1585727CA657A475F0E50E30302ED20C153512D9C6CE26F47A88",
+              "host": "i686-mingw32",
+              "archiveFileName": "mbctool_2.1.1_win32.zip",
+              "size": "17254112"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.1_linux64.tar.gz",
+              "checksum": "SHA-256:D35595E65F1639EEDF85B364CC2DE2664CADF21E9E1A708C0C917987C23E3E42",
+              "host": "x86_64-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.1.1_linux64.tar.gz",
+              "size": "20740550"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.1_linux32.tar.gz",
+              "checksum": "SHA-256:8BF2CCDE5FF046426102058FD6F6171DDB4B9471D54B5B0A85C442ECC5E4FEA0",
+              "host": "i686-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.1.1_linux32.tar.gz",
+              "size": "17416183"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.1_osx.tar.gz",
+              "checksum": "SHA-256:CC698E89E203425AC3728D14C690B6E065B38FFB791ABF4B487B4934D27A8067",
+              "host": "x86_64-apple-darwin",
+              "archiveFileName": "mbctool_2.1.1_osx.tar.gz",
+              "size": "17447190"
+            }
+          ]
+        },
+        {
+          "version": "2.1.2",
+          "name": "mbctool",
+          "systems": [
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.2_win32.zip",
+              "checksum": "SHA-256:D3F1DFD135A103ACCCEC8A010AC3A4D7BA76BB5D7ED7275C54CAA0F5D41F2453",
+              "host": "i686-mingw32",
+              "archiveFileName": "mbctool_2.1.2_win32.zip",
+              "size": "19683637"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.2_linux64.tar.gz",
+              "checksum": "SHA-256:FD0852278765D27BA8978ED6B76FA84951EE8F248B6C07DDCEE0B99620A8A19F",
+              "host": "x86_64-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.1.2_linux64.tar.gz",
+              "size": "20884501"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.2_linux32.tar.gz",
+              "checksum": "SHA-256:DE2F80F64C7157DDD9816A4747DEBFC35C3464F6F9DB124CFEAD32B360E2F60A",
+              "host": "i686-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.1.2_linux32.tar.gz",
+              "size": "17504206"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.2_osx.tar.gz",
+              "checksum": "SHA-256:6CA9C3E89FB225FDF6E534E94692F784E1E32E5BF315303E9ED2F1EA58B4D052",
+              "host": "x86_64-apple-darwin",
+              "archiveFileName": "mbctool_2.1.2_osx.tar.gz",
+              "size": "17540143"
+            }
+          ]
+        },
+        {
+          "version": "2.1.3",
+          "name": "mbctool",
+          "systems": [
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.3_win32.zip",
+              "checksum": "SHA-256:2A33742241A9504E0892C2056EEC0D3C7774F4F5F3A99F5066AE778125B38549",
+              "host": "i686-mingw32",
+              "archiveFileName": "mbctool_2.1.3_win32.zip",
+              "size": "19676666"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.2_linux64.tar.gz",
+              "checksum": "SHA-256:FD0852278765D27BA8978ED6B76FA84951EE8F248B6C07DDCEE0B99620A8A19F",
+              "host": "x86_64-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.1.2_linux64.tar.gz",
+              "size": "20884501"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.2_linux32.tar.gz",
+              "checksum": "SHA-256:DE2F80F64C7157DDD9816A4747DEBFC35C3464F6F9DB124CFEAD32B360E2F60A",
+              "host": "i686-pc-linux-gnu",
+              "archiveFileName": "mbctool_2.1.2_linux32.tar.gz",
+              "size": "17504206"
+            },
+            {
+              "url": "https://download.meteca.org/tools/mbctool_2.1.2_osx.tar.gz",
+              "checksum": "SHA-256:6CA9C3E89FB225FDF6E534E94692F784E1E32E5BF315303E9ED2F1EA58B4D052",
+              "host": "x86_64-apple-darwin",
+              "archiveFileName": "mbctool_2.1.2_osx.tar.gz",
+              "size": "17540143"
+            }
+          ]
+        },
+        {
+          "version": "1.0.0-briki",
+          "name": "CMSIS-Atmel",
+          "systems": [
+            {
+              "url": "https://download.meteca.org/tools/CMSIS-Atmel-1.0.0-briki.zip",
+              "checksum": "SHA-256:AB5BBB77A7228951DD10A1ECF4CD27650E88B6CB08C4EEA350498D3BC617C492",
+              "host": "i686-mingw32",
+              "archiveFileName": "CMSIS-Atmel-1.0.0-briki.zip",
+              "size": "3373339"
+            },
+            {
+              "url": "https://download.meteca.org/tools/CMSIS-Atmel-1.0.0-briki.zip",
+              "checksum": "SHA-256:AB5BBB77A7228951DD10A1ECF4CD27650E88B6CB08C4EEA350498D3BC617C492",
+              "host": "x86_64-pc-linux-gnu",
+              "archiveFileName": "CMSIS-Atmel-1.0.0-briki.zip",
+              "size": "3373339"
+            },
+            {
+              "url": "https://download.meteca.org/tools/CMSIS-Atmel-1.0.0-briki.zip",
+              "checksum": "SHA-256:AB5BBB77A7228951DD10A1ECF4CD27650E88B6CB08C4EEA350498D3BC617C492",
+              "host": "i686-pc-linux-gnu",
+              "archiveFileName": "CMSIS-Atmel-1.0.0-briki.zip",
+              "size": "3373339"
+            },
+            {
+              "url": "https://download.meteca.org/tools/CMSIS-Atmel-1.0.0-briki.zip",
+              "checksum": "SHA-256:AB5BBB77A7228951DD10A1ECF4CD27650E88B6CB08C4EEA350498D3BC617C492",
+              "host": "x86_64-apple-darwin",
+              "archiveFileName": "CMSIS-Atmel-1.0.0-briki.zip",
+              "size": "3373339"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
