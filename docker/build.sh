@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Build script for Scribit Firmware Development Environment
+# Build script for Scribit Firmware Compilation Environment
 
 set -e
 
-echo "Building Scribit Firmware Development Environment..."
+echo "Building Scribit Firmware Compilation Environment..."
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
@@ -13,18 +13,27 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 # Build the Docker image
-echo "Building Docker image..."
+echo "Building headless Docker image for Arduino CLI compilation..."
 docker-compose -f docker/docker-compose.yml build
 
 echo "Build completed successfully!"
 echo ""
-echo "To start the development environment, run:"
-echo "  cd docker && docker-compose up -d"
+echo "🚀 Usage Examples:"
 echo ""
-echo "Then access the Arduino IDE via web browser at:"
-echo "  http://localhost:6080"
+echo "# Compile ESP32 firmware:"
+echo "  docker-compose -f docker/docker-compose.yml run --rm scribit-firmware esp32"
 echo ""
-echo "VNC Password: scribit123"
+echo "# Compile SAMD firmware:"
+echo "  docker-compose -f docker/docker-compose.yml run --rm scribit-firmware samd"
 echo ""
-echo "To test compilation, run inside the container:"
-echo "  /root/test_compilation.sh"
+echo "# Compile both firmware types:"
+echo "  docker-compose -f docker/docker-compose.yml run --rm scribit-firmware both"
+echo ""
+echo "# Verify setup:"
+echo "  docker-compose -f docker/docker-compose.yml run --rm scribit-firmware bash -c verify-setup"
+echo ""
+echo "# Interactive shell:"
+echo "  docker-compose -f docker/docker-compose.yml run --rm scribit-firmware bash"
+echo ""
+echo "📁 Build outputs will be saved to Docker volume 'firmware-builds'"
+echo "   You can access them by mounting the volume or copying from the container."

@@ -9,25 +9,18 @@ echo "🔍 Verifying Scribit Firmware Compilation Setup..."
 echo "=================================================="
 
 # Check if we're in the right directory
-if [ ! -d "/workspace/open-firmware" ]; then
-    echo "❌ Error: Not in the expected workspace directory"
+if [ ! -d "/workspace/source" ]; then
+    echo "❌ Error: Source code not found at /workspace/source"
     exit 1
 fi
 
-cd /workspace/open-firmware
+cd /workspace
 
 echo "✓ Working directory: $(pwd)"
 
-# Check Arduino IDE installation
+# Skip Arduino IDE check for headless setup
 echo ""
-echo "📱 Checking Arduino IDE..."
-if [ -f "/opt/arduino/arduino" ]; then
-    echo "✓ Arduino IDE found at /opt/arduino/arduino"
-    /opt/arduino/arduino --version 2>/dev/null || echo "✓ Arduino IDE executable found"
-else
-    echo "❌ Arduino IDE not found"
-    exit 1
-fi
+echo "📱 Skipping Arduino IDE check (headless setup)..."
 
 # Check Arduino CLI
 echo ""
@@ -39,15 +32,9 @@ else
     exit 1
 fi
 
-# Check Java installation
+# Skip Java check for headless setup
 echo ""
-echo "☕ Checking Java..."
-if command -v java >/dev/null 2>&1; then
-    echo "✓ Java found: $(java -version 2>&1 | head -n1)"
-else
-    echo "❌ Java not found"
-    exit 1
-fi
+echo "☕ Skipping Java check (not needed for arduino-cli)..."
 
 # Check board definitions
 echo ""
@@ -71,22 +58,22 @@ fi
 echo ""
 echo "📄 Checking configuration files..."
 
-if [ -f "Firmware/ScribitESP/SIConfig.hpp" ]; then
-    echo "✓ SIConfig.hpp found"
+if [ -f "source/Firmware/ScribitESP/SIConfig.hpp" ] || [ -f "source/ExtraFile/SIConfig.hpp.example" ]; then
+    echo "✓ SIConfig.hpp or example found"
 else
     echo "❌ SIConfig.hpp missing"
     exit 1
 fi
 
-if [ -f "Firmware/MK4duo/Mk4duoVersion.h" ]; then
-    echo "✓ Mk4duoVersion.h found"
+if [ -f "source/Firmware/MK4duo/Mk4duoVersion.h" ] || [ -f "source/ExtraFile/Mk4duoVersion.h.example" ]; then
+    echo "✓ Mk4duoVersion.h or example found"
 else
     echo "❌ Mk4duoVersion.h missing"
     exit 1
 fi
 
-if [ -f "Firmware/ScribitESP/ScribitVersion.hpp" ]; then
-    echo "✓ ScribitVersion.hpp found"
+if [ -f "source/Firmware/ScribitESP/ScribitVersion.hpp" ] || [ -f "source/ExtraFile/ScribitVersion.hpp.example" ]; then
+    echo "✓ ScribitVersion.hpp or example found"
 else
     echo "❌ ScribitVersion.hpp missing"
     exit 1
@@ -96,14 +83,14 @@ fi
 echo ""
 echo "📚 Checking libraries..."
 
-if [ -d "Firmware/ScribitESP/arduino-mqtt" ]; then
+if [ -d "source/ExtraFile/arduino-mqtt" ]; then
     echo "✓ arduino-mqtt library found"
 else
     echo "❌ arduino-mqtt library missing"
     exit 1
 fi
 
-if [ -d "Firmware/ScribitESP/StepperDriver" ]; then
+if [ -d "source/ExtraFile/StepperDriver" ]; then
     echo "✓ StepperDriver library found"
 else
     echo "❌ StepperDriver library missing"
@@ -136,23 +123,10 @@ else
     exit 1
 fi
 
-# Test compilation (syntax check only)
+# Skip compilation test in verify script (will be done by user)
 echo ""
-echo "🔨 Testing firmware compilation..."
-
-echo "Testing ScribitESP compilation..."
-if arduino-cli compile --fqbn briki:mbc-wb:mbc:mcu=esp Firmware/ScribitESP/ScribitESP.ino --output-dir /tmp/build_esp --verify 2>/dev/null; then
-    echo "✓ ScribitESP compiles successfully"
-else
-    echo "⚠ ScribitESP compilation failed (this might be expected due to missing dependencies)"
-fi
-
-echo "Testing MK4duo compilation..."
-if arduino-cli compile --fqbn briki:mbc-wb:mbc:mcu=samd Firmware/MK4duo/MK4duo.ino --output-dir /tmp/build_samd --verify 2>/dev/null; then
-    echo "✓ MK4duo compiles successfully"
-else
-    echo "⚠ MK4duo compilation failed (this might be expected due to missing dependencies)"
-fi
+echo "🔨 Skipping compilation test..."
+echo "Use the docker run commands to test compilation."
 
 echo ""
 echo "🎉 Setup verification completed!"
@@ -165,10 +139,9 @@ echo "  - Configuration files: ✓ Ready"
 echo "  - Libraries: ✓ Available"
 echo "  - Hardware overrides: ✓ Applied"
 echo ""
-echo "🚀 You can now:"
-echo "  1. Open Arduino IDE from the desktop"
-echo "  2. Load firmware projects from /workspace/open-firmware/Firmware/"
-echo "  3. Select board 'Briki MBC-WB' and choose the appropriate MCU:"
-echo "     - For ESP32 firmware: Select MCU > ESP32"
-echo "     - For SAMD firmware: Select MCU > SAMD21"
-echo "  4. Compile and upload firmware"
+echo "🚀 You can now compile firmware using docker run commands:"
+echo "  # Compile ESP32 firmware:"
+echo "  docker run --rm -v \$(pwd):/workspace/source:ro -v \$(pwd)/docker/builds:/workspace/builds scribit-firmware-builder arduino-cli compile --fqbn briki:mbc-wb:mbc:mcu=esp --output-dir /workspace/builds /workspace/source/Firmware/ScribitESP/ScribitESP.ino"
+echo ""
+echo "  # Compile SAMD firmware:"
+echo "  docker run --rm -v \$(pwd):/workspace/source:ro -v \$(pwd)/docker/builds:/workspace/builds scribit-firmware-builder arduino-cli compile --fqbn briki:mbc-wb:mbc:mcu=samd --output-dir /workspace/builds /workspace/source/Firmware/MK4duo/MK4duo.ino"

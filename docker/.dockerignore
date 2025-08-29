@@ -6,13 +6,14 @@
 .gitmodules
 
 # Docker files (avoid recursive copying)
-docker/test-build.sh
 docker/build.sh
+docker/builds/
+docker/compile
 
 # Documentation that's not needed in container
-README.md
 firmware-tech.md
 docs/
+README.md
 
 # IDE and editor files
 .vscode/
@@ -24,6 +25,9 @@ docs/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Database files
+*.db
 
 # Build artifacts (if any)
 *.o

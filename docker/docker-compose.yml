@@ -1,23 +1,14 @@
-version: '3.8'
-
 services:
-  scribit-firmware-dev:
+  scribit-firmware:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    container_name: scribit-firmware-dev
-    ports:
-      - "6080:80"    # VNC web interface
-      - "5900:5900"  # VNC direct access (optional)
+    container_name: scribit-firmware-builder
     volumes:
-      - ../:/workspace/open-firmware:rw
-      - firmware-builds:/tmp/builds
-    environment:
-      - RESOLUTION=1920x1080
-      # - VNC_PASSWORD=scribit123
-    restart: unless-stopped
-    privileged: true  # May be needed for USB device access
+      - ../:/workspace/source:ro  # Read-only source code
+      - ./builds:/workspace/builds:rw  # Build output directory
+    working_dir: /workspace
+    # Default command shows help
+    command: ["arduino-cli", "compile", "--help"]
 
-volumes:
-  firmware-builds:
-    driver: local
+# No named volumes needed - using bind mounts for simplicity
