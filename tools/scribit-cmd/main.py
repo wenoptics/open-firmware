@@ -34,10 +34,10 @@ Notes
   - degrees for carousel rotation jog (Z)
 
 Requirements:
-  uv add paho-mqtt
+  uv add paho-mqtt typer
 
 Run (needs port 80 -> root):
-  sudo python3 scribit_jog_cli.py \
+  sudo uv run python main.py \
     --robot-id 30aea4d9fc5c \
     --mqtt-host 192.168.240.2 \
     --host-ip 192.168.240.2 \
@@ -46,15 +46,24 @@ Run (needs port 80 -> root):
 
 from __future__ import annotations
 
-import argparse
 import threading
 import time
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from typing import Annotated, Optional
 from urllib.parse import urlparse
-from typing import Optional
 
 import paho.mqtt.client as mqtt
+import typer
+
+cli = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+    help=(
+        "Terminal jog controller for Scribit. Serves GCODE over HTTP and "
+        "commands the robot over MQTT."
+    ),
+)
 
 # ------------------------------------------------------------
 # Motor-space jog mapping
@@ -553,51 +562,86 @@ def run_curses(app: App, step0: float, feed0: int):
     curses.wrapper(loop)
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--robot-id", required=True)
-    ap.add_argument("--mqtt-host", required=True)
-    ap.add_argument("--mqtt-port", type=int, default=1883)
-    ap.add_argument("--mqtt-user", default="scribit")
-    ap.add_argument("--mqtt-pass", default="scribit")
-
-    ap.add_argument("--host-ip", required=True, help="PC IP that robot can reach for HTTP (no port in URL!)")
-    ap.add_argument("--http-port", type=int, default=80, help="HTTP bind port (MUST be 80 for current firmware)")
-    ap.add_argument("--suffix", default="G4 P0", help="Required suffix appended after URL (default 'G4 P0')")
-
-    ap.add_argument("--step", type=float, default=2.0)
-    ap.add_argument("--feed", type=int, default=900)
-
-    args = ap.parse_args()
-
-    if args.http_port != 80:
-        print("ERROR: Your firmware rejects URLs with ':port'. Use --http-port 80 and run with sudo.")
-        raise SystemExit(2)
+@cli.command()
+def main(
+    robot_id: Annotated[
+        str,
+        typer.Option("--robot-id", help="Scribit robot id used in tin/<robot-id>/... MQTT topics."),
+    ],
+    mqtt_host: Annotated[
+        str,
+        typer.Option("--mqtt-host", help="MQTT broker host or IP address."),
+    ],
+    host_ip: Annotated[
+        str,
+        typer.Option("--host-ip", help="This computer's IP address as reachable by the robot."),
+    ],
+    mqtt_port: Annotated[
+        int,
+        typer.Option("--mqtt-port", min=1, max=65535, help="MQTT broker port."),
+    ] = 1883,
+    mqtt_user: Annotated[
+        str,
+        typer.Option("--mqtt-user", help="MQTT username. Use an empty string to disable auth."),
+    ] = "scribit",
+    mqtt_pass: Annotated[
+        str,
+        typer.Option("--mqtt-pass", help="MQTT password. Use an empty string to disable auth."),
+    ] = "scribit",
+    http_port: Annotated[
+        int,
+        typer.Option(
+            "--http-port",
+            min=1,
+            max=65535,
+            help="HTTP bind port. Current firmware requires 80 because URLs cannot include ':port'.",
+        ),
+    ] = 80,
+    suffix: Annotated[
+        str,
+        typer.Option("--suffix", help="Required MQTT print payload suffix appended after the URL."),
+    ] = "G4 P0",
+    step: Annotated[
+        float,
+        typer.Option("--step", min=0.001, help="Initial jog step in mm for cables and degrees for carousel."),
+    ] = 2.0,
+    feed: Annotated[
+        int,
+        typer.Option("--feed", min=1, help="Initial GCODE feed rate."),
+    ] = 900,
+) -> None:
+    if http_port != 80:
+        typer.secho(
+            "ERROR: Your firmware rejects URLs with ':port'. Use --http-port 80 and run with sudo.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(2)
 
     app = App(
-        robot_id=args.robot_id,
-        mqtt_host=args.mqtt_host,
-        mqtt_port=args.mqtt_port,
-        mqtt_user=args.mqtt_user,
-        mqtt_pass=args.mqtt_pass,
-        host_ip=args.host_ip,
-        http_port=args.http_port,
-        suffix=args.suffix,
+        robot_id=robot_id,
+        mqtt_host=mqtt_host,
+        mqtt_port=mqtt_port,
+        mqtt_user=mqtt_user,
+        mqtt_pass=mqtt_pass,
+        host_ip=host_ip,
+        http_port=http_port,
+        suffix=suffix,
     )
 
     Handler.app = app
-    httpd = ThreadingHTTPServer(("0.0.0.0", args.http_port), Handler)
+    httpd = ThreadingHTTPServer(("0.0.0.0", http_port), Handler)
     th = threading.Thread(target=httpd.serve_forever, daemon=True)
     th.start()
 
-    print(f"[scribit_jog_cli] HTTP listening on 0.0.0.0:{args.http_port} (robot fetches via http://{args.host_ip}/...)")
-    print(f"[scribit_jog_cli] MQTT broker {args.mqtt_host}:{args.mqtt_port}  robot_id={args.robot_id}  suffix=;{args.suffix}")
+    typer.echo(f"[scribit_jog_cli] HTTP listening on 0.0.0.0:{http_port} (robot fetches via http://{host_ip}/...)")
+    typer.echo(f"[scribit_jog_cli] MQTT broker {mqtt_host}:{mqtt_port}  robot_id={robot_id}  suffix=;{suffix}")
 
     try:
-        run_curses(app, step0=args.step, feed0=args.feed)
+        run_curses(app, step0=step, feed0=feed)
     except KeyboardInterrupt:
         pass
 
 
 if __name__ == "__main__":
-    main()
+    cli()
