@@ -50,7 +50,9 @@ import threading
 import time
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Annotated, Optional
+from urllib.parse import quote, unquote
 from urllib.parse import urlparse
 
 import paho.mqtt.client as mqtt
@@ -60,8 +62,8 @@ cli = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     help=(
-        "Terminal jog controller for Scribit. Serves GCODE over HTTP and "
-        "commands the robot over MQTT."
+        "Scribit command line tools. Serves GCODE over HTTP and commands the "
+        "robot over MQTT."
     ),
 )
 
@@ -389,6 +391,40 @@ class Handler(BaseHTTPRequestHandler):
         return self._send(404, b"not found\n", "text/plain; charset=utf-8")
 
 
+class FileHandler(BaseHTTPRequestHandler):
+    gcode_path: Path
+    url_path: str
+    downloaded: threading.Event
+
+    def log_message(self, fmt: str, *args) -> None:
+        return
+
+    def _send(self, code: int, body: bytes, ctype: str) -> None:
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self):
+        u = urlparse(self.path)
+        p = unquote(u.path)
+
+        if p == "/health":
+            return self._send(200, b"ok\n", "text/plain; charset=utf-8")
+
+        if p != self.url_path:
+            return self._send(404, b"not found\n", "text/plain; charset=utf-8")
+
+        try:
+            body = self.gcode_path.read_bytes()
+        except OSError as e:
+            return self._send(500, f"read failed: {e}\n".encode("utf-8"), "text/plain; charset=utf-8")
+
+        self.downloaded.set()
+        return self._send(200, body, "text/plain; charset=utf-8")
+
+
 def run_curses(app: App, step0: float, feed0: int):
     import curses
 
@@ -562,8 +598,25 @@ def run_curses(app: App, step0: float, feed0: int):
     curses.wrapper(loop)
 
 
+def validate_firmware_http_port(http_port: int) -> None:
+    if http_port != 80:
+        typer.secho(
+            "ERROR: Your firmware rejects URLs with ':port'. Use --http-port 80 and run with sudo.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(2)
+
+
+def start_http_server(http_port: int, handler: type[BaseHTTPRequestHandler]) -> ThreadingHTTPServer:
+    httpd = ThreadingHTTPServer(("0.0.0.0", http_port), handler)
+    th = threading.Thread(target=httpd.serve_forever, daemon=True)
+    th.start()
+    return httpd
+
+
 @cli.command()
-def main(
+def interactive(
     robot_id: Annotated[
         str,
         typer.Option("--robot-id", help="Scribit robot id used in tin/<robot-id>/... MQTT topics."),
@@ -610,13 +663,7 @@ def main(
         typer.Option("--feed", min=1, help="Initial GCODE feed rate."),
     ] = 900,
 ) -> None:
-    if http_port != 80:
-        typer.secho(
-            "ERROR: Your firmware rejects URLs with ':port'. Use --http-port 80 and run with sudo.",
-            fg=typer.colors.RED,
-            err=True,
-        )
-        raise typer.Exit(2)
+    validate_firmware_http_port(http_port)
 
     app = App(
         robot_id=robot_id,
@@ -630,9 +677,7 @@ def main(
     )
 
     Handler.app = app
-    httpd = ThreadingHTTPServer(("0.0.0.0", http_port), Handler)
-    th = threading.Thread(target=httpd.serve_forever, daemon=True)
-    th.start()
+    httpd = start_http_server(http_port, Handler)
 
     typer.echo(f"[scribit_jog_cli] HTTP listening on 0.0.0.0:{http_port} (robot fetches via http://{host_ip}/...)")
     typer.echo(f"[scribit_jog_cli] MQTT broker {mqtt_host}:{mqtt_port}  robot_id={robot_id}  suffix=;{suffix}")
@@ -641,6 +686,102 @@ def main(
         run_curses(app, step0=step, feed0=feed)
     except KeyboardInterrupt:
         pass
+    finally:
+        httpd.shutdown()
+
+
+@cli.command()
+def draw(
+    gcode_path: Annotated[
+        Path,
+        typer.Argument(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+            help="Path to the GCODE file the robot should download and draw.",
+        ),
+    ],
+    robot_id: Annotated[
+        str,
+        typer.Option("--robot-id", help="Scribit robot id used in tin/<robot-id>/... MQTT topics."),
+    ],
+    mqtt_host: Annotated[
+        str,
+        typer.Option("--mqtt-host", help="MQTT broker host or IP address."),
+    ],
+    host_ip: Annotated[
+        str,
+        typer.Option("--host-ip", help="This computer's IP address as reachable by the robot."),
+    ],
+    mqtt_port: Annotated[
+        int,
+        typer.Option("--mqtt-port", min=1, max=65535, help="MQTT broker port."),
+    ] = 1883,
+    mqtt_user: Annotated[
+        str,
+        typer.Option("--mqtt-user", help="MQTT username. Use an empty string to disable auth."),
+    ] = "scribit",
+    mqtt_pass: Annotated[
+        str,
+        typer.Option("--mqtt-pass", help="MQTT password. Use an empty string to disable auth."),
+    ] = "scribit",
+    http_port: Annotated[
+        int,
+        typer.Option(
+            "--http-port",
+            min=1,
+            max=65535,
+            help="HTTP bind port. Current firmware requires 80 because URLs cannot include ':port'.",
+        ),
+    ] = 80,
+    suffix: Annotated[
+        str,
+        typer.Option("--suffix", help="Required MQTT print payload suffix appended after the URL."),
+    ] = "M18",
+    wait_download: Annotated[
+        float,
+        typer.Option("--wait-download", min=0.0, help="Seconds to wait for the robot to request the GCODE file."),
+    ] = 60.0,
+    keep_alive: Annotated[
+        float,
+        typer.Option("--keep-alive", min=0.0, help="Seconds to keep serving after the first successful download."),
+    ] = 5.0,
+) -> None:
+    validate_firmware_http_port(http_port)
+
+    filename = quote(gcode_path.name)
+    url_path = f"/{filename}"
+    url = f"http://{host_ip}{url_path}"
+    payload = f"{url};{suffix}"
+    downloaded = threading.Event()
+
+    FileHandler.gcode_path = gcode_path
+    FileHandler.url_path = f"/{gcode_path.name}"
+    FileHandler.downloaded = downloaded
+    httpd = start_http_server(http_port, FileHandler)
+
+    topic = f"tin/{robot_id}/print"
+    typer.echo(f"[scribit_cmd] HTTP listening on 0.0.0.0:{http_port} (serving {gcode_path})")
+    typer.echo(f"[scribit_cmd] MQTT broker {mqtt_host}:{mqtt_port}  topic={topic}")
+    typer.echo(f"[scribit_cmd] print payload: {payload}")
+
+    try:
+        mqtt_pub(mqtt_host, mqtt_port, mqtt_user, mqtt_pass, topic, payload)
+        if wait_download > 0:
+            if downloaded.wait(timeout=wait_download):
+                typer.echo("[scribit_cmd] robot downloaded the GCODE file")
+                if keep_alive > 0:
+                    time.sleep(keep_alive)
+            else:
+                typer.secho(
+                    f"[scribit_cmd] timed out waiting {wait_download:g}s for robot download; stopping HTTP server",
+                    fg=typer.colors.YELLOW,
+                    err=True,
+                )
+    finally:
+        httpd.shutdown()
 
 
 if __name__ == "__main__":
