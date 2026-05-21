@@ -5,3 +5,6 @@ Firmware/MK4duo/Mk4duoVersion.h
 
 
 .DS_Store
+
+__pycache__/
+

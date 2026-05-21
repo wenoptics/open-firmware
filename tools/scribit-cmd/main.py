@@ -34,7 +34,7 @@ Notes
   - degrees for carousel rotation jog (Z)
 
 Requirements:
-  sudo apt install mosquitto-clients
+  uv add paho-mqtt
 
 Run (needs port 80 -> root):
   sudo python3 scribit_jog_cli.py \
@@ -47,13 +47,14 @@ Run (needs port 80 -> root):
 from __future__ import annotations
 
 import argparse
-import subprocess
 import threading
 import time
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 from typing import Optional
+
+import paho.mqtt.client as mqtt
 
 # ------------------------------------------------------------
 # Motor-space jog mapping
@@ -170,17 +171,26 @@ CUR_LOCK = threading.Lock()
 CURRENT = {"step": 2.0, "feed": 900}
 
 
-def mosq_pub(host: str, port: int, user: str, pw: str, topic: str, msg: str) -> None:
-    cmd = [
-        "mosquitto_pub",
-        "-h", host,
-        "-p", str(port),
-        "-u", user,
-        "-P", pw,
-        "-t", topic,
-        "-m", msg,
-    ]
-    subprocess.run(cmd, check=True)
+def mqtt_pub(host: str, port: int, user: str, pw: str, topic: str, msg: str) -> None:
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    if user or pw:
+        client.username_pw_set(user, pw)
+
+    rc = client.connect(host, port, keepalive=10)
+    if rc != mqtt.MQTT_ERR_SUCCESS:
+        raise RuntimeError(f"MQTT connect failed: {mqtt.error_string(rc)}")
+
+    client.loop_start()
+    try:
+        info = client.publish(topic, payload=msg, qos=0, retain=False)
+        if info.rc != mqtt.MQTT_ERR_SUCCESS:
+            raise RuntimeError(f"MQTT publish failed: {mqtt.error_string(info.rc)}")
+        info.wait_for_publish(timeout=5.0)
+        if not info.is_published():
+            raise TimeoutError(f"MQTT publish timed out for topic {topic!r}")
+    finally:
+        client.disconnect()
+        client.loop_stop()
 
 
 class App:
@@ -225,11 +235,11 @@ class App:
 
     def ensure_idle(self) -> None:
         # Safe to spam; helps when firmware is in 'boot'/'waiting' state.
-        mosq_pub(self.mqtt_host, self.mqtt_port, self.mqtt_user, self.mqtt_pass,
+        mqtt_pub(self.mqtt_host, self.mqtt_port, self.mqtt_user, self.mqtt_pass,
                  self.topic("status"), "{}")
 
     def reset_n(self) -> None:
-        mosq_pub(self.mqtt_host, self.mqtt_port, self.mqtt_user, self.mqtt_pass,
+        mqtt_pub(self.mqtt_host, self.mqtt_port, self.mqtt_user, self.mqtt_pass,
                  self.topic("reset"), "N")
         with self.last_lock:
             self.last = "RESET N"
@@ -317,7 +327,7 @@ class App:
         self.reset_n()
         time.sleep(0.08)
 
-        mosq_pub(self.mqtt_host, self.mqtt_port, self.mqtt_user, self.mqtt_pass,
+        mqtt_pub(self.mqtt_host, self.mqtt_port, self.mqtt_user, self.mqtt_pass,
                  self.topic("print"), payload)
 
         with self.last_lock:
@@ -591,4 +601,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
