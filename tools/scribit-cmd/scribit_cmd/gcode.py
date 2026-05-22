@@ -92,6 +92,10 @@ def build_static_gcode(key: Key, cmd: str) -> str:
     raise ValueError(f"unknown cmd {cmd}")
 
 
+def build_manual_move_payload(gcode: str) -> str:
+    return ";".join(line for line in gcode.splitlines() if line.strip())
+
+
 class ZTracker:
     def __init__(self, z: float | None = None) -> None:
         self._lock = threading.Lock()
@@ -148,4 +152,3 @@ def build_g77_gcode(tracker: ZTracker | None = None) -> str:
             "G92 Z-56",
         ]
     ) + "\n"
-

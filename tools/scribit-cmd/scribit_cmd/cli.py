@@ -9,7 +9,7 @@ from urllib.parse import quote
 import typer
 
 from .app import App
-from .http_server import FileHandler, GcodeHandler, start_http_server
+from .http_server import FileHandler, start_http_server
 from .mqtt_client import mqtt_pub
 from .tui import run_curses
 
@@ -42,8 +42,8 @@ def interactive(
     ],
     host_ip: Annotated[
         str,
-        typer.Option("--host-ip", help="This computer's IP address as reachable by the robot."),
-    ],
+        typer.Option("--host-ip", help="Unused by interactive manualMove mode; kept for compatibility."),
+    ] = "127.0.0.1",
     mqtt_port: Annotated[int, typer.Option("--mqtt-port", min=1, max=65535, help="MQTT broker port.")] = 1883,
     mqtt_user: Annotated[
         str,
@@ -59,12 +59,12 @@ def interactive(
             "--http-port",
             min=1,
             max=65535,
-            help="HTTP bind port. Current firmware requires 80 because URLs cannot include ':port'.",
+            help="Unused by interactive manualMove mode; kept for compatibility.",
         ),
     ] = 80,
     suffix: Annotated[
         str,
-        typer.Option("--suffix", help="Required MQTT print payload suffix appended after the URL."),
+        typer.Option("--suffix", help="Unused by interactive manualMove mode; kept for compatibility."),
     ] = "G4 P0",
     step: Annotated[
         float,
@@ -72,8 +72,6 @@ def interactive(
     ] = 2.0,
     feed: Annotated[int, typer.Option("--feed", min=1, help="Initial GCODE feed rate.")] = 900,
 ) -> None:
-    validate_firmware_http_port(http_port)
-
     app = App(
         robot_id=robot_id,
         mqtt_host=mqtt_host,
@@ -84,17 +82,13 @@ def interactive(
         http_port=http_port,
         suffix=suffix,
     )
-    httpd = start_http_server(http_port, GcodeHandler)
 
-    typer.echo(f"[scribit_jog_cli] HTTP listening on 0.0.0.0:{http_port} (robot fetches via http://{host_ip}/...)")
-    typer.echo(f"[scribit_jog_cli] MQTT broker {mqtt_host}:{mqtt_port}  robot_id={robot_id}  suffix=;{suffix}")
+    typer.echo(f"[scribit_jog_cli] MQTT broker {mqtt_host}:{mqtt_port}  robot_id={robot_id}  command=manualMove")
 
     try:
         run_curses(app, step0=step, feed0=feed)
     except KeyboardInterrupt:
         pass
-    finally:
-        httpd.shutdown()
 
 
 @cli.command()
@@ -190,4 +184,3 @@ def draw(
 
 def main() -> None:
     cli()
-

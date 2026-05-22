@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from scribit_cmd.gcode import Key, ZTracker, build_g77_gcode, build_pen_gcode, build_static_gcode
+from scribit_cmd.gcode import Key, ZTracker, build_g77_gcode, build_manual_move_payload, build_pen_gcode, build_static_gcode
 
 
 def test_motor_jog_uses_firmware_axis_mapping() -> None:
@@ -26,6 +26,10 @@ def test_carousel_commands_are_relative_z_moves() -> None:
 def test_unknown_static_command_raises_value_error() -> None:
     with pytest.raises(ValueError, match="unknown cmd NOPE"):
         build_static_gcode(Key(step=1.0, feed=900), "NOPE")
+
+
+def test_manual_move_payload_uses_semicolon_line_delimiters() -> None:
+    assert build_manual_move_payload("G21\n\nG91\nM17\n") == "G21;G91;M17"
 
 
 def test_pen_gcode_tracks_ccw_only_absolute_targets() -> None:
@@ -59,4 +63,3 @@ def test_g77_sets_tracker_to_home_offset() -> None:
 
     assert build_g77_gcode(tracker) == "G21\nG90\nM17\nG77\nG92 Z-56\n"
     assert tracker.get() == -56.0
-

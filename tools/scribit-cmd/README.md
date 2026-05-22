@@ -31,16 +31,15 @@ uv run python main.py --help
 ### Interactive jog UI
 
 Starts a curses UI for motor-space jogs, carousel movement, pen selection, and
-stop/reset commands. It also serves dynamic GCODE endpoints at `/g/<CMD>.gcode`.
+stop/reset commands. Interactive controls publish short inline GCODE payloads
+to the firmware `manualMove` MQTT command.
 
 ```bash
-sudo uv run python main.py interactive \
+uv run python main.py interactive \
   --robot-id 30aea4da06f4 \
   --mqtt-host 192.168.1.200 \
   --mqtt-user scribit \
   --mqtt-pass scribit \
-  --host-ip 192.168.1.202 \
-  --http-port 80 \
   --feed 900 \
   --step 2.0
 ```
@@ -49,10 +48,8 @@ Common options:
 
 - `--robot-id`: robot id used in `tin/<robot-id>/...` MQTT topics
 - `--mqtt-host`: MQTT broker host or IP
-- `--host-ip`: this computer's IP address as reachable by the robot
 - `--mqtt-port`: MQTT broker port, default `1883`
 - `--mqtt-user` / `--mqtt-pass`: MQTT credentials, default `scribit`
-- `--suffix`: print payload suffix, default `G4 P0`
 - `--step`: initial cable jog distance / carousel degrees, default `2.0`
 - `--feed`: initial feed rate, default `900`
 

@@ -4,7 +4,7 @@ import threading
 import time
 from collections.abc import Callable
 
-from .gcode import CAROUSEL_CMDS, PEN_CMDS, ZTracker, build_g77_gcode, build_pen_gcode
+from .gcode import CAROUSEL_CMDS, PEN_CMDS, ZTracker, build_g77_gcode, build_manual_move_payload, build_pen_gcode
 from .http_server import CACHE, DYNAMIC_GCODE, DynamicGcodeStore
 from .mqtt_client import mqtt_pub
 from .settings import SETTINGS, SharedSettings
@@ -77,6 +77,34 @@ class App:
     def build_g77_gcode(self) -> str:
         return build_g77_gcode(self.z_tracker)
 
+    def build_cmd_gcode(self, cmd: str) -> str:
+        key = self.settings.key()
+
+        if cmd in PEN_CMDS:
+            pen = int(cmd[1])
+            is_down = cmd.endswith("DOWN")
+            return self.build_pen_gcode(pen=pen, is_down=is_down, fz=2000)
+        if cmd == "G77":
+            return self.build_g77_gcode()
+
+        gcode = CACHE.get_gcode(key, cmd)
+        if cmd in CAROUSEL_CMDS:
+            dz = key.step if cmd == "CAR_CCW" else -key.step
+            self.z_tracker.add_if_known(dz)
+        return gcode
+
+    def publish_manual_cmd(self, cmd: str) -> None:
+        key = self.settings.key()
+        gcode = self.build_cmd_gcode(cmd)
+        payload = build_manual_move_payload(gcode)
+
+        self.ensure_idle()
+        time.sleep(0.02)
+        self.publish_mqtt("manualMove", payload)
+
+        with self.last_lock:
+            self.last = f"{cmd}  step={key.step:g}  feed={key.feed}  manualMove='{payload}'"
+
     def publish_cmd(self, cmd: str) -> None:
         key = self.settings.key()
 
@@ -104,4 +132,3 @@ class App:
 
         with self.last_lock:
             self.last = f"{cmd}  step={key.step:g}  feed={key.feed}  payload='{payload}'"
-

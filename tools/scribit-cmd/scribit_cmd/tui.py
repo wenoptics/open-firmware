@@ -34,16 +34,15 @@ def run_curses(app: App, step0: float, feed0: int) -> None:
         "x                 : Reset N (stop)",
         "ESC / Ctrl+G      : quit",
         "",
-        "NOTE: URL must NOT include ':port'. HTTP must bind on port 80.",
-        "NOTE: MQTT print payload must be 'URL;<suffix>' (suffix default is 'G4 P0').",
+        "NOTE: Interactive jogs publish inline G-code to MQTT manualMove.",
+        "NOTE: Draw/file jobs still use MQTT print payloads as 'URL;<suffix>'.",
     ]
 
     def draw(stdscr) -> None:
         stdscr.clear()
         stdscr.addstr(0, 0, "Scribit Jog CLI (motor-space + carousel/pen helpers)")
-        stdscr.addstr(2, 0, f"HTTP health:  http://{app.host_ip}/health   (server binds :{app.http_port})")
-        stdscr.addstr(3, 0, f"MQTT broker:  {app.mqtt_host}:{app.mqtt_port}   robot_id={app.robot_id}")
-        stdscr.addstr(4, 0, f"Suffix:       ;{app.suffix}")
+        stdscr.addstr(2, 0, f"MQTT broker:  {app.mqtt_host}:{app.mqtt_port}   robot_id={app.robot_id}")
+        stdscr.addstr(3, 0, "Command:      manualMove")
         stdscr.addstr(6, 0, f"step={step:g}   feed={feed}   (step is mm for cables, degrees for carousel)")
         with app.last_lock:
             last = app.last
@@ -56,7 +55,7 @@ def run_curses(app: App, step0: float, feed0: int) -> None:
         stdscr.refresh()
 
     def publish(cmd: str) -> None:
-        app.publish_cmd(cmd)
+        app.publish_manual_cmd(cmd)
 
     def step_down() -> None:
         nonlocal step
@@ -155,4 +154,3 @@ def run_curses(app: App, step0: float, feed0: int) -> None:
                 return
 
     curses.wrapper(loop)
-

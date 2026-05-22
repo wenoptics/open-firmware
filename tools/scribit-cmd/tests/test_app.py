@@ -51,6 +51,18 @@ def test_publish_static_command_sends_status_reset_and_print() -> None:
     assert app.last == "BOTH_IN  step=2  feed=900  payload='http://192.0.2.10/g/BOTH_IN.gcode;G4 P0'"
 
 
+def test_publish_manual_command_sends_inline_gcode_to_manual_move() -> None:
+    app, publisher, _store = make_app()
+
+    app.publish_manual_cmd("BOTH_IN")
+
+    assert [call[4:] for call in publisher.calls] == [
+        ("tin/robot-1/status", "{}"),
+        ("tin/robot-1/manualMove", "G21;G91;M17;G1 X-2.000 Y2.000 F900"),
+    ]
+    assert app.last == "BOTH_IN  step=2  feed=900  manualMove='G21;G91;M17;G1 X-2.000 Y2.000 F900'"
+
+
 def test_publish_pen_command_stores_dynamic_gcode() -> None:
     app, publisher, store = make_app()
 
@@ -77,4 +89,3 @@ def test_carousel_publish_updates_known_z_position() -> None:
     app.publish_cmd("CAR_CW")
 
     assert app.z_tracker.get() == 100.0
-
