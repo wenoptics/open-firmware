@@ -9,3 +9,4 @@ Firmware/MK4duo/Mk4duoVersion.h
 __pycache__/
 
 .try/
+.reference/
