@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "paho-mqtt>=2.1.0",
+    "textual>=0.80.0",
     "typer>=0.25.1",
 ]
 
@@ -13,6 +14,9 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
 ]
+
+[tool.pyright]
+reportUnusedParameter = "none"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
