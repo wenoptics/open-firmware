@@ -99,3 +99,4 @@ To reset the Wi-Fi configuration, press the button for at least 2 seconds. The d
 
 - [@kris-sum](https://github.com/kris-sum)
 - [scribit-open/open-firmware](https://github.com/scribit-open/open-firmware)
+- [@lqu](https://github.com/lqu/scribit)
