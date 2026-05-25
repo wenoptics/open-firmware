@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import threading
 import time
 from pathlib import Path
@@ -160,6 +161,10 @@ def draw(
     FileHandler.downloaded = downloaded
     httpd = start_http_server(http_port, FileHandler)
 
+    # Make Scribit ready (leave BOOT, go IDLE)
+    mqtt_pub(mqtt_host, mqtt_port, mqtt_user, mqtt_pass, f"tin/{robot_id}/status", "{}")
+    time.sleep(0.02)
+
     topic = f"tin/{robot_id}/print"
     typer.echo(f"[scribit_cmd] HTTP listening on 0.0.0.0:{http_port} (serving {gcode_path})")
     typer.echo(f"[scribit_cmd] MQTT broker {mqtt_host}:{mqtt_port}  topic={topic}")
@@ -180,6 +185,34 @@ def draw(
                 )
     finally:
         httpd.shutdown()
+
+
+@cli.command()
+def calibrate(
+    left_mm: Annotated[float, typer.Option("--left", help="Left cable length in mm (nail centre to robot centre).")],
+    right_mm: Annotated[float, typer.Option("--right", help="Right cable length in mm (nail centre to robot centre).")],
+    robot_id: Annotated[str, typer.Option("--robot-id", help="Scribit robot id used in tin/<robot-id>/... MQTT topics.")],
+    mqtt_host: Annotated[str, typer.Option("--mqtt-host", help="MQTT broker host or IP address.")],
+    nail_spacing_mm: Annotated[float, typer.Option("--nail-spacing", help="Horizontal distance between the two nails in mm.")] = 1860.0,
+    mqtt_port: Annotated[int, typer.Option("--mqtt-port", min=1, max=65535, help="MQTT broker port.")] = 1883,
+    mqtt_user: Annotated[str, typer.Option("--mqtt-user", help="MQTT username.")] = "scribit",
+    mqtt_pass: Annotated[str, typer.Option("--mqtt-pass", help="MQTT password.")] = "scribit",
+) -> None:
+    """Set robot position from measured cable lengths. No IMU or cloud service required.
+
+    Measure the left and right cable lengths with a tape measure (nail centre to
+    robot centre), then run this command. The robot's absolute wall position is
+    computed from the polargraph geometry and injected via a G92 command.
+    """
+    D, L, R = nail_spacing_mm, left_mm, right_mm
+    x = (L**2 - R**2 + D**2) / (2 * D)
+    y = math.sqrt(max(0.0, L**2 - x**2))
+    payload = f"G92 X{x:.2f} Y{y:.2f}"
+
+    typer.echo(f"[scribit_cmd] Computed position: X={x:.1f} mm, Y={y:.1f} mm")
+    typer.echo(f"[scribit_cmd] Sending manualMove payload: {payload}")
+    mqtt_pub(mqtt_host, mqtt_port, mqtt_user, mqtt_pass, f"tin/{robot_id}/manualMove", payload)
+    typer.echo("[scribit_cmd] Done.")
 
 
 def main() -> None:
