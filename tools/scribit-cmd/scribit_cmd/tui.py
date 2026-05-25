@@ -55,7 +55,7 @@ class MqttLogSubscriber:
         self._host = host
         self._port = port
         self._cb = callback
-        self._topic = f"tin/{robot_id}/#"
+        self._topics = [f"tin/{robot_id}/#", f"tout/{robot_id}/#"]
         self._client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         if user or pw:
             self._client.username_pw_set(user, pw)
@@ -76,8 +76,9 @@ class MqttLogSubscriber:
     def _on_connect(self, client, _userdata, _flags, reason_code, _properties) -> None:
         if reason_code == 0:
             self._cb("[green]Connected to MQTT broker[/]")
-            client.subscribe(self._topic, qos=0)
-            self._cb(f"[dim]Subscribed to {self._topic}[/]")
+            for topic in self._topics:
+                client.subscribe(topic, qos=0)
+                self._cb(f"[dim]Subscribed to {topic}[/]")
         else:
             self._cb(f"[red]MQTT connect refused: {reason_code}[/]")
 

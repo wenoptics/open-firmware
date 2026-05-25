@@ -487,27 +487,33 @@ void SISerialManager::parseVerticalStatus(const char *samdSerialBuffer)
 bool SISerialManager::parseIMUData(const char *samdSerialBuffer)
 {
     char *tp = strstr(samdSerialBuffer, "I:"), *eon;
-    double angle;
-    if (tp != nullptr) //Temperature data present
-    {
-        tp += 2; //Skip "I:"
-        angle = std::strtod(tp, &eon);
-        if (tp == eon)
-        {
-            SIMQTT.debug(TAG, String("Error converting measure to string: ") + samdSerialBuffer);
-            return false;
-        }
+    if (tp == nullptr)
+        return false;
 
-#ifdef SI_DEBUG_BUILD
-        SIMQTT.debug(TAG, String("Angle parsed: ") + angle);
-#endif
-        //Save
-        m_imuData = angle * 10;
-        //Signal new data
-        return true;
+    tp += 2; //Skip "I:"
+    double pitch = std::strtod(tp, &eon);
+    if (tp == eon)
+    {
+        SIMQTT.debug(TAG, String("Error converting measure to string: ") + samdSerialBuffer);
+        return false;
     }
 
-    return false;
+    m_imuData = pitch * 10;
+
+    //Parse roll (R:) and yaw (Y:) if present (firmware sends all three since imuDiag change)
+    double roll = 0, yaw = 0;
+    char *rp = strstr(samdSerialBuffer, "R:");
+    char *yp = strstr(samdSerialBuffer, "Y:");
+    if (rp) roll = std::strtod(rp + 2, nullptr);
+    if (yp) yaw  = std::strtod(yp + 2, nullptr);
+
+    //Publish full IMU snapshot for Step 1 diagnostics
+    String diag = String("{\"pitch\":") + pitch
+                + ",\"roll\":"  + roll
+                + ",\"yaw\":"   + yaw + "}";
+    SIMQTT.publish("imuDiag", diag);
+
+    return true;
 }
 
 bool SISerialManager::getIMUData(int16_t &data)

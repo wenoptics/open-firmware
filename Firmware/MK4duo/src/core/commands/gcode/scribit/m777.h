@@ -12,7 +12,7 @@
  */
 inline void gcode_M777(void)
 {
-    float roll, pitch, yaw;
+    float roll = 0, pitch = 0, yaw = 0;
     char buffer[64];
     millis_t waitFor;
 
@@ -41,20 +41,20 @@ inline void gcode_M777(void)
         return;    
     }
 
-    //Get IMU values
-    //roll = SIIMU.getRoll();
-    //yaw = SIIMU.getYaw();
-
+    //Get IMU values — average 10 samples for each axis
     for(int i = 0; i < 10; i++)
     {
+        roll  += SIIMU.getRoll();
         pitch += SIIMU.getPitch();
+        yaw   += SIIMU.getYaw();
     }
 
+    roll  /= 10;
     pitch /= 10;
+    yaw   /= 10;
 
-    //Create output string
-    sprintf(buffer, "I:%.1f", pitch);
-    //sprintf(buffer, "I:%.1f %.1f", roll, yaw);
+    //Create output string (pitch first so legacy "I:" parsing still works)
+    sprintf(buffer, "I:%.1f R:%.1f Y:%.1f", pitch, roll, yaw);
 
     //Evaluate checksum
     /*uint8_t cs = 0;
