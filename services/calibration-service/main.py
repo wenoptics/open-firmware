@@ -29,13 +29,19 @@ of "G1", causing it to retry:
     "G92 X<L> Y<R>; G1 X0 Y0 F1000"
 """
 
+import base64
+import hashlib
+import logging
 import math
 import os
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import PlainTextResponse, FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import PlainTextResponse, Response
 from pydantic import BaseModel, field_validator
+
+logger = logging.getLogger("calibration")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 from geometry import (
     WALL_CONFIGS,
@@ -48,6 +54,14 @@ from geometry import (
 AUTOCAL_GCODE_PATH = Path(__file__).parent / "autocal.GCODE"
 
 app = FastAPI(title="Scribit Calibration Service", version="0.1.0")
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info("%s %s from %s", request.method, request.url.path, request.client)
+    response = await call_next(request)
+    logger.info("%s %s → %s", request.method, request.url.path, response.status_code)
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -86,16 +100,31 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-@app.get("/autocal.GCODE", response_class=PlainTextResponse)
-def serve_autocal_gcode() -> PlainTextResponse:
+@app.get("/autocal.GCODE")
+def serve_autocal_gcode() -> Response:
     """
     Serve the IMU tilt-sampling G-code sequence.
     The firmware fetches this URL before each calibration run
     (SI_CALIBRATION_GCODE_URL in SIConfig.hpp).
+
+    The firmware's SIFileDownloader checks for an x-goog-hash: md5<base64>
+    header (SI_SERVER_MD5_HEADER) and aborts if it's missing when
+    forcemd5Check=true (the default). The base64-encoded raw MD5 digest
+    is appended immediately after the literal "md5" substring.
     """
     if not AUTOCAL_GCODE_PATH.exists():
         raise HTTPException(status_code=404, detail="autocal.GCODE not found")
-    return PlainTextResponse(AUTOCAL_GCODE_PATH.read_text())
+    content = AUTOCAL_GCODE_PATH.read_bytes()
+    md5_b64 = base64.b64encode(hashlib.md5(content).digest()).decode()
+
+    # Trailing space on the x-goog-hash value is required: firmware reads
+    # substring(ti, indexOf(" ", ti)) — without a space the trailing \r from
+    # readStringUntil(0x0A) gets included, corrupting the base64 decode.
+    return Response(
+        content=content,
+        media_type="text/plain",
+        headers={"x-goog-hash": f"md5{md5_b64} "},
+    )
 
 
 @app.post("/calibrate", response_class=PlainTextResponse)
@@ -113,6 +142,7 @@ def calibrate(req: CalibrateRequest) -> PlainTextResponse:
         "G92 X<L> Y<R>; G1 X0 Y0 F1000"
     """
     cfg = WALL_CONFIGS[req.wallId]
+    logger.info("calibrate sn=%s wallId=%d scans=%s", req.sn, req.wallId, req.scans)
 
     try:
         x0, y0 = solve_position(
@@ -122,10 +152,12 @@ def calibrate(req: CalibrateRequest) -> PlainTextResponse:
             y_prior_mm=cfg.y_prior_mm,
         )
     except Exception as exc:
+        logger.error("solver failed: %s", exc)
         raise HTTPException(status_code=422, detail=f"Solver failed: {exc}") from exc
 
     # Sanity-check: y0 must be positive (robot below nails)
     if y0 <= 0:
+        logger.error("non-physical y0=%.1f", y0)
         raise HTTPException(
             status_code=422,
             detail=f"Solver returned non-physical y0={y0:.1f} mm (must be > 0). "
@@ -137,9 +169,11 @@ def calibrate(req: CalibrateRequest) -> PlainTextResponse:
     # Distance from prior
     dist = math.hypot(x0 - cfg.x_prior_mm, y0 - cfg.y_prior_mm)
     if dist > NUDGE_THRESHOLD_MM:
+        logger.info("nudge required (dist=%.1f mm > threshold): %s", dist, g92)
         # Robot appears to not be at Point Zero — include G1 so firmware retries
         body = f'"{g92}; G1 X0 Y0 F1000"'
     else:
+        logger.info("calibration OK (dist=%.1f mm): %s", dist, g92)
         body = f'"{g92}"'
 
     # Body is a single line; firmware skips HTTP headers then reads first line.
