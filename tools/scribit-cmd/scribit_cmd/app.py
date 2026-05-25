@@ -71,12 +71,6 @@ class App:
         with self.last_lock:
             self.last = "RESET N"
 
-    def publish_calibration(self, wall_id: int, g1_cmd: str) -> None:
-        payload = f"{g1_cmd};{wall_id}"
-        self.publish_mqtt("calibration", payload)
-        with self.last_lock:
-            self.last = f"calibration  wall={wall_id}  payload='{payload}'"
-
     def build_pen_gcode(self, pen: int, is_down: bool, fz: int = 2000) -> str:
         return build_pen_gcode(self.z_tracker, pen=pen, is_down=is_down, fz=fz)
 

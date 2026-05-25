@@ -12,7 +12,7 @@ from textual.binding import Binding
 from textual.containers import Container, Horizontal, ScrollableContainer, Vertical
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Button, Footer, Header, Input, Label, RichLog, Static
+from textual.widgets import Button, Footer, Header, Label, RichLog, Static
 
 from .app import App
 from .settings import SETTINGS
@@ -67,14 +67,13 @@ BUTTON_GROUPS: list[tuple[str, list[tuple[str, str, str]]]] = [
 # ─── MQTT subscriber for the log panel ───────────────────────────────────────
 
 class MqttLogSubscriber:
-    """Persistent MQTT client subscribing to tin/<robot_id>/# and tout/<robot_id>/#."""
+    """Persistent MQTT client that subscribes to all tin/<robot_id>/# topics."""
 
     def __init__(self, host: str, port: int, user: str, pw: str, robot_id: str, callback) -> None:
         self._host = host
         self._port = port
         self._cb = callback
-        self._in_topic = f"tin/{robot_id}/#"
-        self._out_topic = f"tout/{robot_id}/#"
+        self._topic = f"tin/{robot_id}/#"
         self._client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         if user or pw:
             self._client.username_pw_set(user, pw)
@@ -95,24 +94,18 @@ class MqttLogSubscriber:
     def _on_connect(self, client, _userdata, _flags, reason_code, _properties) -> None:
         if reason_code == 0:
             self._cb("[green]Connected to MQTT broker[/]")
-            client.subscribe([(self._in_topic, 0), (self._out_topic, 0)])
-            self._cb(f"[dim]Subscribed to {self._in_topic} and {self._out_topic}[/]")
+            client.subscribe(self._topic, qos=0)
+            self._cb(f"[dim]Subscribed to {self._topic}[/]")
         else:
             self._cb(f"[red]MQTT connect refused: {reason_code}[/]")
 
     def _on_message(self, _client, _userdata, message) -> None:
         topic = message.topic
         payload = message.payload.decode(errors="replace")
-        # Highlight calibration-related outbound messages distinctly
-        if "/calibrating" in topic:
-            self._cb(f"[bold cyan]{topic}[/]  [bold white]{payload}[/]", level="calibrating")
-        elif "/error" in topic:
-            self._cb(f"[bold red]{topic}[/]  [red]{payload}[/]", level="error")
-        else:
-            self._cb(f"[cyan]{topic}[/]  [white]{payload}[/]", level="info")
+        self._cb(f"[cyan]{topic}[/]  [white]{payload}[/]")
 
     def _on_disconnect(self, _client, _userdata, _disconnect_flags, reason_code, _properties) -> None:
-        self._cb(f"[yellow]MQTT subscriber disconnected (rc={reason_code})[/]", level="warn")
+        self._cb(f"[yellow]MQTT subscriber disconnected (rc={reason_code})[/]")
 
     def stop(self) -> None:
         self._client.disconnect()
@@ -255,92 +248,6 @@ class StepFeedControl(Widget):
             pass
 
 
-# ─── Calibration Panel ────────────────────────────────────────────────────────
-
-class CalibrationPanel(Widget):
-    """Modal-style panel for triggering and monitoring calibration."""
-
-    DEFAULT_CSS = """
-    CalibrationPanel {
-        border: double $warning;
-        padding: 0 1 1 1;
-        margin: 0 0 1 0;
-        height: auto;
-    }
-    CalibrationPanel Label.cal-title {
-        color: $warning;
-        text-style: bold;
-        margin-bottom: 0;
-    }
-    CalibrationPanel Label.cal-field {
-        color: $text-muted;
-        margin-top: 1;
-    }
-    CalibrationPanel Input {
-        margin-bottom: 0;
-    }
-    CalibrationPanel #cal-status {
-        margin-top: 1;
-        height: auto;
-        min-height: 1;
-    }
-    CalibrationPanel #cal-go-btn {
-        margin-top: 1;
-        width: 1fr;
-        height: 3;
-        background: $warning-darken-2;
-        color: $text;
-    }
-    CalibrationPanel #cal-go-btn:hover {
-        background: $warning;
-    }
-    CalibrationPanel #cal-go-btn:disabled {
-        background: $surface-darken-1;
-        color: $text-disabled;
-    }
-    """
-
-    # reactive status label text
-    status: reactive[str] = reactive("")
-
-    def compose(self) -> ComposeResult:
-        yield Label("Calibration (B)", classes="cal-title")
-        yield Label("Wall ID:", classes="cal-field")
-        yield Input(placeholder="e.g. 3", id="cal-wall-id", type="integer")
-        yield Label("G1 send-on-stop command:", classes="cal-field")
-        yield Input(placeholder="e.g. G1 X0 Y0 F1000", id="cal-g1-cmd", value="G1 X0 Y0 F1000")
-        yield Button("Start Calibration", id="cal-go-btn")
-        yield Label("", id="cal-status")
-
-    def watch_status(self, val: str) -> None:
-        try:
-            self.query_one("#cal-status", Label).update(val)
-        except Exception:
-            pass
-
-    def set_running(self, running: bool) -> None:
-        try:
-            btn = self.query_one("#cal-go-btn", Button)
-            btn.disabled = running
-            btn.label = "Calibrating…" if running else "Start Calibration"
-        except Exception:
-            pass
-
-    @property
-    def wall_id_value(self) -> str:
-        try:
-            return self.query_one("#cal-wall-id", Input).value.strip()
-        except Exception:
-            return ""
-
-    @property
-    def g1_cmd_value(self) -> str:
-        try:
-            return self.query_one("#cal-g1-cmd", Input).value.strip()
-        except Exception:
-            return ""
-
-
 # ─── Main TUI App ─────────────────────────────────────────────────────────────
 
 class ScribitTUI(TextualApp):
@@ -414,8 +321,6 @@ class ScribitTUI(TextualApp):
     """
 
     BINDINGS = [
-        # calibration
-        Binding("b", "focus_calibration", "B Calibrate", show=True),
         # cable drive
         Binding("up", "jog('BOTH_IN')", "↑ Both IN", show=False),
         Binding("down", "jog('BOTH_OUT')", "↓ Both OUT", show=False),
@@ -464,7 +369,6 @@ class ScribitTUI(TextualApp):
         self.step = STEP_CHOICES[self._step_idx]
         self.feed = FEED_CHOICES[self._feed_idx]
         self._mqtt_sub: MqttLogSubscriber | None = None
-        self._calibrating = False
 
     # ── helpers ──────────────────────────────────────────────────────────────
 
@@ -484,7 +388,6 @@ class ScribitTUI(TextualApp):
                 for title, buttons in BUTTON_GROUPS:
                     yield CommandGroup(title, buttons)
                 yield StepFeedControl(id="sf-ctrl")
-                yield CalibrationPanel(id="cal-panel")
                 yield Button("X  Reset / Stop", id="reset-btn", variant="error")
         with Vertical(id="right-panel"):
             yield StatusBar(self._app, id="status-bar")
@@ -517,38 +420,14 @@ class ScribitTUI(TextualApp):
             callback=self._on_mqtt_log,
         )
 
-    def _on_mqtt_log(self, markup: str, level: str = "info") -> None:
+    def _on_mqtt_log(self, markup: str, level: str) -> None:
         ts = datetime.now().strftime("%H:%M:%S")
         self.call_from_thread(self._append_log, f"[dim]{ts}[/] {markup}")
-        if level in ("calibrating", "error") and self._calibrating:
-            self.call_from_thread(self._update_cal_status, markup, level)
 
     def _append_log(self, markup: str) -> None:
         try:
             log = self.query_one("#rich-log", RichLog)
             log.write(markup)
-        except Exception:
-            pass
-
-    def _update_cal_status(self, markup: str, level: str) -> None:
-        try:
-            panel = self.query_one(CalibrationPanel)
-            if level == "calibrating":
-                # {"status":0} = success, {"status":1} = failed
-                if '"status":0' in markup:
-                    panel.status = "[bold green]Calibration succeeded![/]"
-                    panel.set_running(False)
-                    self._calibrating = False
-                elif '"status":1' in markup:
-                    panel.status = "[bold red]Calibration failed after all retries.[/]"
-                    panel.set_running(False)
-                    self._calibrating = False
-                else:
-                    panel.status = f"[cyan]{markup}[/]"
-            elif level == "error":
-                panel.status = f"[red]{markup}[/]"
-                panel.set_running(False)
-                self._calibrating = False
         except Exception:
             pass
 
@@ -599,12 +478,6 @@ class ScribitTUI(TextualApp):
         self._log_cmd("RESET N")
         threading.Thread(target=self._app.reset_n, daemon=True).start()
 
-    def action_focus_calibration(self) -> None:
-        try:
-            self.query_one("#cal-wall-id", Input).focus()
-        except Exception:
-            pass
-
     # ── button handler ───────────────────────────────────────────────────────
 
     @on(Button.Pressed)
@@ -616,50 +489,11 @@ class ScribitTUI(TextualApp):
         if btn_id in ("step_down", "step_up", "feed_down", "feed_up"):
             getattr(self, f"action_{btn_id}")()
             return
-        if btn_id == "cal-go-btn":
-            self._start_calibration()
-            return
         # CommandButton
         if isinstance(event.button, CommandButton):
             self._dispatch(event.button.scribit_cmd)
 
     # ── internal ─────────────────────────────────────────────────────────────
-
-    def _start_calibration(self) -> None:
-        try:
-            panel = self.query_one(CalibrationPanel)
-        except Exception:
-            return
-
-        wall_id_str = panel.wall_id_value
-        g1_cmd = panel.g1_cmd_value
-
-        if not wall_id_str:
-            panel.status = "[red]Enter a Wall ID first.[/]"
-            return
-        try:
-            wall_id = int(wall_id_str)
-        except ValueError:
-            panel.status = "[red]Wall ID must be an integer.[/]"
-            return
-        if not g1_cmd.startswith("G1"):
-            panel.status = "[red]G1 command must start with 'G1'.[/]"
-            return
-
-        self._calibrating = True
-        panel.set_running(True)
-        panel.status = "[yellow]Calibration started — waiting for robot…[/]"
-        ts = datetime.now().strftime("%H:%M:%S")
-        try:
-            log = self.query_one("#rich-log", RichLog)
-            log.write(f"[dim]{ts}[/] [bold yellow]→ CALIBRATE[/] wall=[cyan]{wall_id}[/]  g1=[white]{g1_cmd}[/]")
-        except Exception:
-            pass
-        threading.Thread(
-            target=self._app.publish_calibration,
-            args=(wall_id, g1_cmd),
-            daemon=True,
-        ).start()
 
     def _dispatch(self, cmd: str) -> None:
         self._log_cmd(cmd)
