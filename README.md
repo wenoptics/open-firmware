@@ -16,7 +16,7 @@ If you are starting fresh in 2025, especially after shutdown of the product - he
 
 ### Prepare
 
-Prepare configuration files (one-time setup):
+Prepare configuration files:
 
 ```bash
 # Copy example configuration files
@@ -29,46 +29,9 @@ cp -r ExtraFile/arduino-mqtt Firmware/ScribitESP/
 cp -r ExtraFile/StepperDriver Firmware/ScribitESP/
 ```
 
-### Compile the Firmware
+### Prepare the device:
 
-#### Using Docker (recommended)
-
-Refer to [docker/README.md](docker/README.md) for more details.
-
-#### Using Arduino IDE
-
-<details>
-<summary>Click to expand</summary>
-
-- Copy the file `ExtraFile/SIConfig.hpp.example` to `Firmware/ScribitESP/SIConfig.hpp`
-- Copy the file `ExtraFile/Mk4duoVersion.h.example` to `Firmware/MK4Duo/Mk4duoVersion.h`
-- Copy the file `ExtraFile/ScribitVersion.hpp.example` to `Firmware/ScribitESP/ScribitVersion.hpp`
-- Make the necessary configurations and compile
-
-**SDK Installation**
-
-- Install the Arduino Legacy IDE (1.8.19).
-    - Add board URLs to Arduino IDE in `File > Preferences > Additional Boards Manager URLs`:
-        ```
-        https://www.briki.org/download/resources/package_briki_index.json
-        https://dl.espressif.com/dl/package_esp32_dev_index.json
-        ```
-    - Go to `Tools > Board > Board Manager` and install the `Briki MBC-WB` board definition.
-    - Use the **v2.0.0** version of the `Briki MBC-WB` board (v2.1.7 doesn't compile SAMD board)
-
-- Add additional hardware overrides:
-    - Copy the files `8MB_ffat.csv` and `8MB_spiffs.csv` from `ExtraFile/` to `Arduino15/packages/briki/hardware/mbc-wb/2.0.0/tools/partitions`, overwriting the existing files.
-    - Copy `ExtraFile/SERCOM.cpp` to `Arduino15/packages/briki/hardware/mbc-wb/2.0.0/cores/samd21`, overwriting the existing file.
-
-- Copy libraries:
-    - Copy `ExtraFile/arduino-mqtt` folder to `Firmware/ScribitESP`
-    - Copy `ExtraFile/StepperDriver` folder to `Firmware/ScribitESP`
-
-You may also refer to the [MBC-WB User Manual](docs/MBC-WB-UserManual_v-2-1-min-1.pdf) for more details.
-
-</details>
-
-### New Wi-Fi Configuration
+#### New Wi-Fi Configuration
 - Connect to the `ScribIt-AP` AP.
 - Send a POST request to `http://192.168.240.1:8888`. The body must contain a JSON formatted as follows: `{ "ssid": "networkSSID", "password": "networkPsk" }`.
 - The device blinks faster and responds:
@@ -76,14 +39,43 @@ You may also refer to the [MBC-WB User Manual](docs/MBC-WB-UserManual_v-2-1-min-
   - **400**: Error in the request. The body contains details about the error in the format: `{"error":"error", "ID":"id_device"}`.
 - If the connection is successful, the device turns the LEDs green and reboots; otherwise, it turns them red for 2 seconds and waits for a new configuration packet.
 
-### Delete Saved Wi-Fi
+#### Delete Saved Wi-Fi
 To reset the Wi-Fi configuration, press the button for at least 2 seconds. The device will reboot.
 
-### OTA Firmware
-- Compile the firmware.
-- Connect to the AP and open the OTA tool.
-- Connect to `192.168.240.1` on port `3232` without a password.
-- Follow the document [MBC-W](docs/MBC-WB-UserManual_v-2-1-min-1.pdf)
+
+### Compile the Firmware
+
+More detail, see [docker/README.md](docker/README.md) for more details.
+
+- ESP32 firmware
+  ```bash
+  docker-compose -f docker/docker-compose.yml run --rm scribit-firmware arduino-cli compile --fqbn briki:mbc-wb:mbc:mcu=esp --output-dir /workspace/builds /workspace/source/Firmware/ScribitESP/ScribitESP.ino
+  ```
+  You should find `docker/builds/ScribitESP.ino.bin` after the build.
+  
+- SAMD21 firmware  
+  ```bash
+  docker-compose -f docker/docker-compose.yml run --rm scribit-firmware arduino-cli compile --fqbn briki:mbc-wb:mbc:mcu=samd --output-dir /workspace/builds /workspace/source/Firmware/MK4duo/MK4duo.ino
+  ```
+  You should find `docker/builds/MK4duo.ino.bin` after the build.
+
+
+### Flash the Firmware with OTA
+
+If you are connected to the Scribit AP, the robot should be accessible at `192.168.240.1` on port `3232` without a password. Or if the robot is connected to your Wi-Fi, you can find its IP address in your router's DHCP client list and access it on port `3232`.
+
+- Upload the ESP32 firmware:
+  ```bash
+  python vendor/mbc-wb_2.0.0/tools/espota.py -i $ROBOT_IP_ADDRESS -p 3232 -f docker/builds/ScribitESP.ino.bin
+  ```
+- Upload the SAMD21 firmware:
+  ```bash
+  python vendor/mbc-wb_2.0.0/tools/espota.py -i $ROBOT_IP_ADDRESS -p 3232 -c -f docker/builds/MK4duo.ino.bin
+  ```
+- Update the ESP32 partition table:
+  ```bash
+  python vendor/mbc-wb_2.0.0/tools/espota.py -i $ROBOT_IP_ADDRESS -p 3232 -s -f docker/builds/ScribitESP.ino.partitions.bin
+  ```
 
 ## Known Bugs
 - If you perform an update from a link on SAMD with the serial monitor open, the port may become inaccessible until the first reboot.
