@@ -43,24 +43,6 @@ BUTTON_GROUPS: list[tuple[str, list[tuple[str, str, str]]]] = [
             ("H  Home (G77)", "G77", "h_key"),
         ],
     ),
-    (
-        "Pen DOWN  (1-4)",
-        [
-            ("1  Pen 1 ↓", "P1_DOWN", "p1d"),
-            ("2  Pen 2 ↓", "P2_DOWN", "p2d"),
-            ("3  Pen 3 ↓", "P3_DOWN", "p3d"),
-            ("4  Pen 4 ↓", "P4_DOWN", "p4d"),
-        ],
-    ),
-    (
-        "Pen UP  (!@#$)",
-        [
-            ("!  Pen 1 ↑", "P1_UP", "p1u"),
-            ("@  Pen 2 ↑", "P2_UP", "p2u"),
-            ("#  Pen 3 ↑", "P3_UP", "p3u"),
-            ("$  Pen 4 ↑", "P4_UP", "p4u"),
-        ],
-    ),
 ]
 
 
@@ -186,6 +168,49 @@ class CommandGroup(Widget):
         yield Label(self._title, classes="group-title")
         for label, cmd, btn_id in self._buttons:
             yield CommandButton(label, cmd, btn_id)
+
+
+class PenGroup(Widget):
+    """Four pen slots — each row has ↓ DOWN and ↑ UP side by side."""
+
+    DEFAULT_CSS = """
+    PenGroup {
+        border: round $accent-darken-2;
+        padding: 0 1;
+        margin: 0 0 1 0;
+        height: auto;
+        layout: vertical;
+    }
+    PenGroup Label.group-title {
+        color: $accent;
+        text-style: bold;
+        height: 1;
+    }
+    PenGroup .pen-row {
+        layout: grid;
+        grid-size: 2;
+        grid-gutter: 0;
+        height: 3;
+    }
+    PenGroup CommandButton {
+        height: 3;
+        margin: 0;
+        background: $surface;
+    }
+    PenGroup CommandButton:hover {
+        background: $accent-darken-3;
+    }
+    PenGroup CommandButton:focus {
+        background: $accent-darken-2;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Label("Pens  (1-4 / !@#$)", classes="group-title")
+        for pen, down_key, up_key in [(1, "1", "!"), (2, "2", "@"), (3, "3", "#"), (4, "4", "$")]:
+            with Horizontal(classes="pen-row"):
+                yield CommandButton(f"{down_key}  Pen {pen} ↓", f"P{pen}_DOWN", f"p{pen}d")
+                yield CommandButton(f"{up_key}  Pen {pen} ↑", f"P{pen}_UP", f"p{pen}u")
 
 
 class StepFeedControl(Widget):
@@ -466,6 +491,7 @@ class ScribitTUI(TextualApp):
                         with VerticalScroll(id="jog-scroll"):
                             for title, buttons in BUTTON_GROUPS:
                                 yield CommandGroup(title, buttons)
+                            yield PenGroup()
                             yield StepFeedControl(id="sf-ctrl")
                             yield Button("X  Reset / Stop", id="reset-btn", variant="error")
                     with TabPane("GCode", id="tab-gcode"):

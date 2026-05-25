@@ -239,15 +239,27 @@ itself — the firmware reads the first non-header line and scans for `"G92"`
 to the next `"` character, `SIFileDownloader.cpp:321-323`):
 
 ```
-"G92 X<x0_mm> Y<y0_mm>"
+"G92 X<L_mm> Y<R_mm>"
 ```
+
+**Important:** `X` and `Y` here are **cable lengths** (mm), not wall XY
+coordinates. `G92` in cable-length space sets the SAMD21's internal left- and
+right-cable counters. `format_g92()` in `geometry.py` calls `xy_to_lr()` to
+convert the solved wall position before formatting the command.
 
 If the computed position is far from the prior (robot not placed correctly),
 the service may instead return:
 
 ```
-"G92 X<corrected_x> Y<corrected_y>; G1 X<nudge_x> Y<nudge_y> F<feed>"
+"G92 X<L_mm> Y<R_mm>; G1 X<L_mm> Y<R_mm> F<feed>"
 ```
+
+**Critical:** `autocal.GCODE` ends with `G90` (absolute mode). So the nudge
+`G1` must also use **absolute cable-length coordinates** — identical to the
+values in `G92`. After `G92` tells the firmware where it *thinks* it is, the
+`G1` physically drives the motors to that same cable-length position, resolving
+the discrepancy. Using `G1 X0 Y0` here would command both cables to zero length
+and crash the motors into their limits.
 
 The firmware treats the presence of a `G1` in the response as a signal that
 the robot needs a physical nudge before position is settled, and retries the

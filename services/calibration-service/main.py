@@ -49,6 +49,7 @@ from geometry import (
     solve_position,
     format_g92,
     sample_positions,
+    xy_to_lr,
 )
 
 AUTOCAL_GCODE_PATH = Path(__file__).parent / "autocal.GCODE"
@@ -170,8 +171,12 @@ def calibrate(req: CalibrateRequest) -> PlainTextResponse:
     dist = math.hypot(x0 - cfg.x_prior_mm, y0 - cfg.y_prior_mm)
     if dist > NUDGE_THRESHOLD_MM:
         logger.info("nudge required (dist=%.1f mm > threshold=%.1f): %s", dist, NUDGE_THRESHOLD_MM, g92)
-        # Robot appears to not be at Point Zero — include G1 so firmware retries
-        body = f'"{g92}; G1 X0 Y0 F1000"'
+        # After G92 sets the internal cable-length position, G1 physically moves
+        # the robot to that same position (absolute cable-length coordinates,
+        # since autocal.GCODE ends with G90). G1 X0 Y0 would reel cables to
+        # zero and crash the motors — G1 must use the solved L/R values.
+        L, R = xy_to_lr(x0, y0, cfg.D_mm)
+        body = f'"{g92}; G1 X{L:.2f} Y{R:.2f} F1000"'
     else:
         logger.info("calibration OK (dist=%.1f mm): %s", dist, g92)
         body = f'"{g92}"'
