@@ -90,7 +90,7 @@ bool SIFileDownloader::download(String target, bool forcemd5Check)
             {
                 line = client->readStringUntil(0x0A);
 
-                if (line.startsWith("Content-Length:")) //Find length
+                if (line.startsWith("Content-Length:") || line.startsWith("content-length:")) //Find length
                 {
                     //Length---------------------------------------------------
                     len = atoll(line.substring(15).c_str());
@@ -282,7 +282,7 @@ bool SIFileDownloader::getStartingPosition(String &startPositionGcode, int16_t m
                  "Content-Type: application/json\r\n" +
                  "accesstoken: cmJqv3ah7nPj3OVGoNyevDXs7LwNJbIW\r\n" +
                  "Content-Length: " +String(data.length(), DEC) + "\r\n" +
-                 "\n" +  data;
+                 "\r\n" +  data;
     //Send request-----------------------------------------
     //SIMQTT.debug(TAG,request);
     client->print(request);
