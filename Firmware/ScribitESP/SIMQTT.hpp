@@ -1,7 +1,12 @@
 #pragma once
 
 #include <MQTT.h>
-#include <WiFiClientSecure.h>
+#ifdef SIMQTT_SECURE
+  #include <WiFiClientSecure.h>
+#else
+  #include <WiFi.h>
+  #include <WiFiClient.h>
+#endif
 #include "SIConfig.hpp"
 #include "AxxxLib/CircBuf.h"
 #include "SIMQTTMessage.hpp"
@@ -50,7 +55,11 @@ enum SIMQTT_ERRORS
 class SIMQTTClass
 {
 
+#ifdef SIMQTT_SECURE
   WiFiClientSecure net;
+#else
+  WiFiClient net;
+#endif
   MQTTClient client;
 
   MQTTClientCallbackSimple m_cb; //Callback function

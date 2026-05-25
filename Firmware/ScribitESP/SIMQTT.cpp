@@ -43,7 +43,9 @@ int SIMQTTClass::begin(uint8_t t_ID[6], bool skip)
         m_ID[i] = t_ID[i];
 
     //Set certificate
+#ifdef SIMQTT_SECURE
     net.setCACert(ca_cert);
+#endif
     client.begin(SI_MQTT_HOST, SI_MQTT_PORT, net);
     bool status = connect();
     m_initialized = true;
