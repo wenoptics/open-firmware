@@ -16,14 +16,17 @@ separation D, the equilibrium tilt is:
     L = hypot(x, y)
     R = hypot(D - x, y)
 
-    sin(θ) = (R² - L²) / (2 * D * y * cos(θ))   [full cable-tension balance]
+    θ = arctan2(D - 2x, 2y)
+
+Positive θ means robot tilts left (x < D/2, left cable shorter). This matches
+the sign reported by the SAMD21 IMU ("ok I:<angle>").
 
 Because the small-angle approximation breaks down far from centre, we model the
 full geometry and use scipy least-squares to find (x0, y0) that best fits all
 four observed pitch values.
 
-Angles stored by the ESP32 firmware are pitch * 10 (int16_t), so callers must
-pass the raw scans array and this module converts automatically.
+Angles arrive already in degrees: the firmware stores pitch×10 as int16_t
+internally but sends the divided value over serial (SIFileDownloader.cpp:272).
 """
 
 import math
@@ -51,21 +54,30 @@ class WallConfig:
 # Point Zero for each class sits at a fixed offset from the left nail,
 # as determined by the tape-hole layout.  These values are approximate;
 # the solver uses them as an initial guess and prior, not a hard constraint.
+#
+# (0, 0) ──────────────────────────────→ X (right)
+#   │
+#   │   Wall surface
+#   │
+#   ↓ Y (down)
+#
+# Origin is the **top-left corner** of the wall. X increases to the right; Y
+# increases downward (same convention as SVG). Scribit's full wall spans from
+# `(0, 0)` to approximately `(D, D)` where `D` is the nail-to-nail distance
+
 WALL_CONFIGS: dict[int, WallConfig] = {
     # A-tape: 2 m – 2.75 m walls  (A1/A2 holes)
-    # Point Zero sits roughly 40 % in from left and 35 % down from top.
-    # Positions are chosen so |sin(θ)| < 0.95 at all four autocal corners,
-    # keeping the pitch well within the physical arcsin domain.
-    1: WallConfig(D_mm=2000, x_prior_mm=800,  y_prior_mm=700,  label="A 2.0 m"),
-    2: WallConfig(D_mm=2250, x_prior_mm=900,  y_prior_mm=790,  label="A 2.25 m"),
-    3: WallConfig(D_mm=2500, x_prior_mm=1000, y_prior_mm=875,  label="A 2.5 m"),
-    4: WallConfig(D_mm=2750, x_prior_mm=1100, y_prior_mm=960,  label="A 2.75 m"),
+    # Point Zero sits roughly 25 % in from left and 65 % down from top.
+    1: WallConfig(D_mm=2000, x_prior_mm=500,  y_prior_mm=1300, label="A 2.0 m"),
+    2: WallConfig(D_mm=2250, x_prior_mm=562,  y_prior_mm=1463, label="A 2.25 m"),
+    3: WallConfig(D_mm=2500, x_prior_mm=625,  y_prior_mm=1625, label="A 2.5 m"),
+    4: WallConfig(D_mm=2750, x_prior_mm=688,  y_prior_mm=1788, label="A 2.75 m"),
     # B-tape: 3 m – 4 m walls     (B1/B2 holes)
-    5: WallConfig(D_mm=3000, x_prior_mm=1200, y_prior_mm=1050, label="B 3.0 m"),
-    6: WallConfig(D_mm=3250, x_prior_mm=1300, y_prior_mm=1140, label="B 3.25 m"),
-    7: WallConfig(D_mm=3500, x_prior_mm=1400, y_prior_mm=1225, label="B 3.5 m"),
-    8: WallConfig(D_mm=3750, x_prior_mm=1500, y_prior_mm=1310, label="B 3.75 m"),
-    9: WallConfig(D_mm=4000, x_prior_mm=1600, y_prior_mm=1400, label="B 4.0 m"),
+    5: WallConfig(D_mm=3000, x_prior_mm=750,  y_prior_mm=1950, label="B 3.0 m"),
+    6: WallConfig(D_mm=3250, x_prior_mm=812,  y_prior_mm=2113, label="B 3.25 m"),
+    7: WallConfig(D_mm=3500, x_prior_mm=875,  y_prior_mm=2275, label="B 3.5 m"),
+    8: WallConfig(D_mm=3750, x_prior_mm=938,  y_prior_mm=2438, label="B 3.75 m"),
+    9: WallConfig(D_mm=4000, x_prior_mm=1000, y_prior_mm=2600, label="B 4.0 m"),
 }
 
 # Offset step used by autocal.GCODE (mm)
@@ -84,38 +96,22 @@ def predicted_pitch(x: float, y: float, D: float) -> float:
     Return the equilibrium IMU pitch angle (degrees) for a polargraph robot at
     wall position (x, y) with nail separation D.
 
-    Sign convention: robot tilts left (toward left nail) → negative pitch.
-    The IMU is mounted so that leftward tilt gives a negative reading.
+    Sign convention: robot tilts left (toward left nail) → positive pitch.
+    This matches the SAMD21 IMU reports: firmware replies "ok I:<angle>" where
+    angle is positive when the robot is left of centre (shorter left cable).
 
-    Derivation: at equilibrium the net horizontal moment about the robot CoM
-    is zero.  The horizontal components of cable tension must balance:
+    Derivation: the robot hangs so its body aligns with the bisector of the two
+    cable directions. The net horizontal cable force is proportional to (D - 2x),
+    and the vertical component to 2y, giving:
 
-        T_L * (x / L) = T_R * ((D-x) / R)
+        θ = arctan2(D - 2x, 2y)
 
-    with T_L/R = mg * (L/R) / (y/L + y/R) … simplifying:
-
-        sin(θ) = (L² - R²) / (2 * D * hypot(x, y) * ... )
-
-    Practically, for small angles the pitch tracks the horizontal asymmetry of
-    the cable forces.  A clean closed form for the equilibrium angle is:
-
-        θ = arctan2(R_h - L_h, y)
-
-    where L_h = x (horizontal projection of left cable anchor), R_h = D - x.
-
-    We use the full atan2 form which is valid at any angle:
+    When x < D/2 (left of centre): D - 2x > 0 → positive θ.
+    When x > D/2 (right of centre): D - 2x < 0 → negative θ.
     """
     if y <= 0:
         raise ValueError(f"y must be positive (robot below nails), got {y}")
-    L = math.hypot(x, y)
-    R = math.hypot(D - x, y)
-    # Horizontal component of tension ratio drives tilt.
-    # The robot tilts so that sin(θ) = (L² - R²) / (2 * D * y)
-    # This is derived from the catenary equilibrium; exact for massless cables.
-    sin_theta = (L * L - R * R) / (2.0 * D * y)
-    # clamp to [-1, 1] for numerical safety
-    sin_theta = max(-1.0, min(1.0, sin_theta))
-    return math.degrees(math.asin(sin_theta))
+    return math.degrees(math.atan2(D - 2.0 * x, 2.0 * y))
 
 
 def sample_positions(x0: float, y0: float) -> list[tuple[float, float]]:
@@ -152,15 +148,17 @@ def solve_position(
     Solve for (x0, y0) given four raw IMU scan values and wall geometry.
 
     Args:
-        scans_raw: four values as sent by the firmware (pitch × 10, int16_t).
-                   Converted to degrees internally.
+        scans_raw: four pitch values in degrees as sent by the firmware.
+                   The firmware stores pitch×10 internally but divides by 10
+                   before sending (SIFileDownloader.cpp line 272), so the values
+                   arrive here already in degrees.
         D_mm:      nail-to-nail distance.
         x_prior_mm, y_prior_mm: initial guess (from WallConfig or tape spec).
 
     Returns:
         (x0_mm, y0_mm) — best-fit Point Zero in wall-XY coordinates.
     """
-    observed = np.array([v / 10.0 for v in scans_raw])  # tenths → degrees
+    observed = np.array([float(v) for v in scans_raw])  # already degrees
 
     result = least_squares(
         _residuals,

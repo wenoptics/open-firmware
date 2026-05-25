@@ -71,7 +71,7 @@ async def log_requests(request: Request, call_next):
 class CalibrateRequest(BaseModel):
     sn: str                  # device serial (MAC hex string), informational
     wallId: int              # 1-9, selects WallConfig
-    scans: list[float]       # four raw IMU readings (pitch × 10, int16_t)
+    scans: list[float]       # four IMU pitch readings in degrees (firmware divides pitch×10 by 10 before sending)
 
     @field_validator("wallId")
     @classmethod
@@ -169,7 +169,7 @@ def calibrate(req: CalibrateRequest) -> PlainTextResponse:
     # Distance from prior
     dist = math.hypot(x0 - cfg.x_prior_mm, y0 - cfg.y_prior_mm)
     if dist > NUDGE_THRESHOLD_MM:
-        logger.info("nudge required (dist=%.1f mm > threshold): %s", dist, g92)
+        logger.info("nudge required (dist=%.1f mm > threshold=%.1f): %s", dist, NUDGE_THRESHOLD_MM, g92)
         # Robot appears to not be at Point Zero — include G1 so firmware retries
         body = f'"{g92}; G1 X0 Y0 F1000"'
     else:
