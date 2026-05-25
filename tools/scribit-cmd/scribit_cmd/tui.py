@@ -9,10 +9,10 @@ from textual import on
 from textual.app import App as TextualApp
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, Horizontal, ScrollableContainer, Vertical
+from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Button, Footer, Header, Label, RichLog, Static
+from textual.widgets import Button, Footer, Header, Label, RichLog, Static, TabbedContent, TabPane, TextArea
 
 from .app import App
 from .settings import SETTINGS
@@ -248,6 +248,59 @@ class StepFeedControl(Widget):
             pass
 
 
+class GCodePanel(Widget):
+    """Multi-line GCode editor with a Submit button."""
+
+    DEFAULT_CSS = """
+    GCodePanel {
+        height: 1fr;
+        layout: vertical;
+        padding: 0;
+    }
+    GCodePanel Label.gcode-title {
+        color: $accent;
+        text-style: bold;
+        height: auto;
+        margin-bottom: 1;
+    }
+    GCodePanel TextArea {
+        height: 1fr;
+        margin-bottom: 1;
+    }
+    GCodePanel #gcode-submit {
+        width: 1fr;
+        height: 3;
+        background: $success-darken-2;
+        color: $text;
+    }
+    GCodePanel #gcode-submit:hover {
+        background: $success;
+    }
+    GCodePanel #gcode-clear {
+        width: 1fr;
+        height: 3;
+        background: $surface;
+        color: $text;
+        margin-top: 0;
+    }
+    GCodePanel #gcode-clear:hover {
+        background: $accent-darken-3;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Label("Raw GCode  (ctrl+enter to send)", classes="gcode-title")
+        yield TextArea(id="gcode-editor", language="python")
+        yield Button("Send GCode  (ctrl+enter)", id="gcode-submit", variant="success")
+        yield Button("Clear", id="gcode-clear")
+
+    def get_gcode(self) -> str:
+        return self.query_one("#gcode-editor", TextArea).text
+
+    def clear(self) -> None:
+        self.query_one("#gcode-editor", TextArea).clear()
+
+
 # ─── Main TUI App ─────────────────────────────────────────────────────────────
 
 class ScribitTUI(TextualApp):
@@ -259,13 +312,15 @@ class ScribitTUI(TextualApp):
         layout: horizontal;
     }
 
+    Screen > Horizontal {
+        height: 1fr;
+    }
+
     #left-panel {
         width: 36;
         min-width: 30;
         height: 100%;
         border-right: tall $accent-darken-3;
-        overflow-y: auto;
-        padding: 0 1;
     }
 
     #right-panel {
@@ -298,8 +353,7 @@ class ScribitTUI(TextualApp):
     }
 
     #reset-btn {
-        dock: bottom;
-        margin: 1 1;
+        margin: 1 0;
         height: 3;
         background: $error-darken-2;
         color: $text;
@@ -317,6 +371,23 @@ class ScribitTUI(TextualApp):
         color: $accent;
         text-style: bold;
         margin-top: 1;
+    }
+
+    TabbedContent {
+        height: 100%;
+    }
+
+    TabbedContent ContentSwitcher {
+        height: 1fr;
+    }
+
+    TabPane {
+        height: 100%;
+        padding: 0 1;
+    }
+
+    #jog-scroll {
+        height: 100%;
     }
     """
 
@@ -356,6 +427,11 @@ class ScribitTUI(TextualApp):
         # misc
         Binding("x", "reset_n", "X Reset", show=True),
         Binding("ctrl+c,escape", "quit", "Quit", show=True),
+        # mode switching
+        Binding("ctrl+g", "switch_tab('gcode')", "GCode Mode", show=True),
+        Binding("ctrl+j", "switch_tab('jog')", "Jog Mode", show=True),
+        # gcode submit
+        Binding("ctrl+enter", "submit_gcode", "Send GCode", show=False),
     ]
 
     step: reactive[float] = reactive(2.0)
@@ -384,16 +460,21 @@ class ScribitTUI(TextualApp):
     def compose(self) -> ComposeResult:
         yield Header()
         with Horizontal():
-            with ScrollableContainer(id="left-panel"):
-                for title, buttons in BUTTON_GROUPS:
-                    yield CommandGroup(title, buttons)
-                yield StepFeedControl(id="sf-ctrl")
-                yield Button("X  Reset / Stop", id="reset-btn", variant="error")
-        with Vertical(id="right-panel"):
-            yield StatusBar(self._app, id="status-bar")
-            with Container(id="log-panel"):
-                yield Label("MQTT Log", id="log-title")
-                yield RichLog(highlight=True, markup=True, id="rich-log", wrap=True)
+            with Container(id="left-panel"):
+                with TabbedContent(id="mode-tabs"):
+                    with TabPane("Jog", id="tab-jog"):
+                        with VerticalScroll(id="jog-scroll"):
+                            for title, buttons in BUTTON_GROUPS:
+                                yield CommandGroup(title, buttons)
+                            yield StepFeedControl(id="sf-ctrl")
+                            yield Button("X  Reset / Stop", id="reset-btn", variant="error")
+                    with TabPane("GCode", id="tab-gcode"):
+                        yield GCodePanel(id="gcode-panel")
+            with Vertical(id="right-panel"):
+                yield StatusBar(self._app, id="status-bar")
+                with Container(id="log-panel"):
+                    yield Label("MQTT Log", id="log-title")
+                    yield RichLog(highlight=True, markup=True, id="rich-log", wrap=True)
         yield Footer()
 
     def on_mount(self) -> None:
@@ -420,7 +501,7 @@ class ScribitTUI(TextualApp):
             callback=self._on_mqtt_log,
         )
 
-    def _on_mqtt_log(self, markup: str, level: str) -> None:
+    def _on_mqtt_log(self, markup: str) -> None:
         ts = datetime.now().strftime("%H:%M:%S")
         self.call_from_thread(self._append_log, f"[dim]{ts}[/] {markup}")
 
@@ -478,6 +559,21 @@ class ScribitTUI(TextualApp):
         self._log_cmd("RESET N")
         threading.Thread(target=self._app.reset_n, daemon=True).start()
 
+    def action_switch_tab(self, tab_id: str) -> None:
+        try:
+            self.query_one("#mode-tabs", TabbedContent).active = f"tab-{tab_id}"
+        except Exception:
+            pass
+
+    def action_submit_gcode(self) -> None:
+        try:
+            panel = self.query_one(GCodePanel)
+            gcode = panel.get_gcode().strip()
+        except Exception:
+            return
+        if gcode:
+            self._dispatch_raw_gcode(gcode)
+
     # ── button handler ───────────────────────────────────────────────────────
 
     @on(Button.Pressed)
@@ -489,7 +585,15 @@ class ScribitTUI(TextualApp):
         if btn_id in ("step_down", "step_up", "feed_down", "feed_up"):
             getattr(self, f"action_{btn_id}")()
             return
-        # CommandButton
+        if btn_id == "gcode-submit":
+            self.action_submit_gcode()
+            return
+        if btn_id == "gcode-clear":
+            try:
+                self.query_one(GCodePanel).clear()
+            except Exception:
+                pass
+            return
         if isinstance(event.button, CommandButton):
             self._dispatch(event.button.scribit_cmd)
 
@@ -500,6 +604,26 @@ class ScribitTUI(TextualApp):
         threading.Thread(
             target=self._app.publish_manual_cmd,
             args=(cmd,),
+            daemon=True,
+        ).start()
+
+    def _dispatch_raw_gcode(self, gcode: str) -> None:
+        ts = datetime.now().strftime("%H:%M:%S")
+        lines = gcode.splitlines()
+        preview = lines[0] if lines else ""
+        suffix = f" (+{len(lines)-1} more)" if len(lines) > 1 else ""
+        try:
+            log = self.query_one("#rich-log", RichLog)
+            log.write(f"[dim]{ts}[/] [bold green]→ GCODE[/] [yellow]{preview}[/][dim]{suffix}[/]")
+        except Exception:
+            pass
+        try:
+            self.query_one(StatusBar).last_cmd = f"GCODE({len(lines)} lines)"
+        except Exception:
+            pass
+        threading.Thread(
+            target=self._app.publish_mqtt,
+            args=("manualMove", gcode),
             daemon=True,
         ).start()
 
