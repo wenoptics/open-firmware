@@ -496,6 +496,10 @@ def main() -> None:
         mapper.map_uv(xmax, ymax),
         mapper.map_uv(xmin, ymax),
     ]
+    wall_bbox_left = bbox_corners_wall[0][0]
+    wall_bbox_top = bbox_corners_wall[0][1]
+    wall_bbox_right = bbox_corners_wall[1][0]
+    wall_bbox_bottom = bbox_corners_wall[2][1]
 
     g_bbox: List[str] = []
     g_bbox += gcode_header()
@@ -602,6 +606,13 @@ def main() -> None:
     print(f"Wrote: {args.out_draw}")
     print(f"D_mm={args_D:.1f} scale={scale:.6f} fit_frac={args.fit_frac} step_mm={args.step_mm} travel_step_mm={args.travel_step_mm}")
     print(f"Color->pen map: {color_to_pen}")
+    print(
+        "bbox margins: "
+        f"left={(wall_bbox_left / args_D) * 100:.2f}% ({wall_bbox_left:.1f}mm) "
+        f"right={((args_D - wall_bbox_right) / args_D) * 100:.2f}% ({(args_D - wall_bbox_right):.1f}mm) "
+        f"top={(wall_bbox_top / args_D) * 100:.2f}% ({wall_bbox_top:.1f}mm) "
+        f"bottom={((args_D - wall_bbox_bottom) / args_D) * 100:.2f}% ({(args_D - wall_bbox_bottom):.1f}mm)"
+    )
     print(f"home_carousel={args.home_carousel} (disable with --no_home_carousel)")
     print(f"return_after_finish={args.return_after_finish} (disable with --no-return-after-finish)")
 
