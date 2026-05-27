@@ -325,6 +325,7 @@ class Args:
     bbox_pen: int
     default_pen: int
     home_carousel: bool
+    return_after_finish: bool
     out_bbox: str
     out_draw: str
 
@@ -366,6 +367,13 @@ def build_argparser() -> argparse.ArgumentParser:
 
     p.add_argument("--no_home_carousel", action="store_true",
                    help="Do NOT emit G77 + G92 Z-56 at file start (not recommended)")
+
+    p.add_argument("--return-after-finish", dest="return_after_finish",
+                   action="store_true", default=True,
+                   help="Return robot to starting position (D/2, D/2) after finishing with pen up")
+    p.add_argument("--no-return-after-finish", dest="return_after_finish",
+                   action="store_false",
+                   help="Do not return to starting position after finishing")
 
     p.add_argument("--out_bbox", default="bbox_dots.gcode",
                    help="Output filename for bbox dots G-code")
@@ -511,6 +519,13 @@ def main() -> None:
         g_bbox += gcode_dwell(args.dot_dwell_s)
         g_bbox += gcode_pen_up(pen, args.f_z, st_bbox)
 
+    if args.return_after_finish:
+        g_bbox.append("; --- return to start position after bbox dots ---")
+        lines, cur_xy = move_xy_segmented(
+            cur_xy, (wall_cx, wall_cy), args_D, args.f_travel, max_step_mm=args.travel_step_mm
+        )
+        g_bbox += lines
+
     write_lines(args.out_bbox, g_bbox)
 
     # ---------- (2) drawing ----------
@@ -574,6 +589,13 @@ def main() -> None:
 
             g_draw += gcode_pen_up(pen, args.f_z, st_draw)
 
+    if args.return_after_finish:
+        g_draw.append("; --- return to start position after drawing ---")
+        lines, cur_xy = move_xy_segmented(
+            cur_xy, (wall_cx, wall_cy), args_D, args.f_travel, max_step_mm=args.travel_step_mm
+        )
+        g_draw += lines
+
     write_lines(args.out_draw, g_draw)
 
     print(f"Wrote: {args.out_bbox}")
@@ -581,6 +603,7 @@ def main() -> None:
     print(f"D_mm={args_D:.1f} scale={scale:.6f} fit_frac={args.fit_frac} step_mm={args.step_mm} travel_step_mm={args.travel_step_mm}")
     print(f"Color->pen map: {color_to_pen}")
     print(f"home_carousel={args.home_carousel} (disable with --no_home_carousel)")
+    print(f"return_after_finish={args.return_after_finish} (disable with --no-return-after-finish)")
 
 
 if __name__ == "__main__":
